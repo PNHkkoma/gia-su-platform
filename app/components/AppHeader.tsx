@@ -1,14 +1,16 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { BookOpen, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { clearClientAuthUser } from '@/lib/client-auth';
 
 export function AppHeader({ role = 'guest' }: { role?: 'guest' | 'teacher' | 'student' }) {
   const router = useRouter();
   const home = role === 'teacher' ? '/teacher/dashboard' : role === 'student' ? '/student/dashboard' : '/';
 
   function logout() {
+    clearClientAuthUser();
     router.push('/auth/login');
   }
 

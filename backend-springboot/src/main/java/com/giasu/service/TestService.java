@@ -1,4 +1,4 @@
-﻿package com.giasu.service;
+package com.giasu.service;
 
 import com.giasu.common.Slugs;
 import org.springframework.jdbc.core.JdbcTemplate;

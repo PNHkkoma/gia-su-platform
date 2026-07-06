@@ -1,14 +1,21 @@
-﻿import { request } from './client';
+import { request } from './client';
+
+function withStudentQuery(path: string, studentEmail?: string) {
+  if (!studentEmail) return path;
+  const separator = path.includes('?') ? '&' : '?';
+  return `${path}${separator}studentEmail=${encodeURIComponent(studentEmail)}`;
+}
 
 export const studentApi = {
-  getTests: () => request('/students/tests'),
-  getTest: (testId: string) => request(`/students/tests/${testId}`),
-  getHistory: () => request('/students/history'),
-  getProfile: () => request('/students/profile'),
-  startTest: (testId: string) => request(`/students/tests/${testId}/start`, { method: 'POST' }),
-  submitTest: (testId: string, payload: Record<string, unknown>) =>
-    request(`/students/tests/${testId}/submit`, {
+  getTests: (studentEmail?: string) => request(withStudentQuery('/students/tests', studentEmail)),
+  getTest: (testId: string, studentEmail?: string) => request(withStudentQuery(`/students/tests/${testId}`, studentEmail)),
+  getHistory: (studentEmail?: string) => request(withStudentQuery('/students/history', studentEmail)),
+  getProfile: (studentEmail?: string) => request(withStudentQuery('/students/profile', studentEmail)),
+  getVocabulary: (studentEmail?: string) => request(withStudentQuery('/students/vocabulary', studentEmail)),
+  startTest: (testId: string, studentEmail?: string) => request(withStudentQuery(`/students/tests/${testId}/start`, studentEmail), { method: 'POST' }),
+  submitTest: (testId: string, payload: Record<string, unknown>, studentEmail?: string) =>
+    request(withStudentQuery(`/students/tests/${testId}/submit`, studentEmail), {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(studentEmail ? { ...payload, studentEmail } : payload),
     }),
 };

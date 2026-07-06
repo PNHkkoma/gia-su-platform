@@ -203,32 +203,43 @@ model VocabularySet {
 }
 
 model VocabularyItem {
-  id              String                      @id @default(uuid())
-  vocabularySet   VocabularySet               @relation(fields: [vocabularySetId], references: [id])
-  vocabularySetId String
-  term            String
-  meaning         String
-  pronunciation   String?
-  example         String?
-  imageUrl        String?
-  orderIndex      Int
-  createdAt       DateTime                    @default(now())
-  updatedAt       DateTime                    @updatedAt
-  progress        StudentVocabularyProgress[]
+  id               String                      @id @default(uuid())
+  vocabularySet    VocabularySet               @relation(fields: [vocabularySetId], references: [id])
+  vocabularySetId  String
+  term             String
+  meaning          String
+  word             String?
+  phonetic         String?
+  partOfSpeech     String?
+  meaningVi        String?
+  meaningEn        String?
+  example          String?
+  exampleSentence  String?
+  exampleMeaningVi String?
+  imageUrl         String?
+  tags             String[]                    @default([])
+  orderIndex       Int
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
+  progress         StudentVocabularyProgress[]
 }
 
 model VocabularyAssignment {
-  id              String        @id @default(uuid())
-  vocabularySet   VocabularySet @relation(fields: [vocabularySetId], references: [id])
-  vocabularySetId String
-  class           Class?        @relation(fields: [classId], references: [id])
-  classId         String?
-  student         User?         @relation("StudentVocabularyAssignments", fields: [studentId], references: [id])
-  studentId       String?
-  accessCode      String?       @unique
-  opensAt         DateTime?
-  closesAt        DateTime?
-  createdAt       DateTime      @default(now())
+  id                     String        @id @default(uuid())
+  vocabularySet          VocabularySet @relation(fields: [vocabularySetId], references: [id])
+  vocabularySetId        String
+  title                  String        @default("Vocabulary assignment")
+  deadline               DateTime?
+  dailyTarget            Int           @default(5)
+  requiredMasteryPercent Int           @default(80)
+  class                  Class?        @relation(fields: [classId], references: [id])
+  classId                String?
+  student                User?         @relation("StudentVocabularyAssignments", fields: [studentId], references: [id])
+  studentId              String?
+  accessCode             String?       @unique
+  opensAt                DateTime?
+  closesAt               DateTime?
+  createdAt              DateTime      @default(now())
 }
 
 model StudentVocabularyProgress {

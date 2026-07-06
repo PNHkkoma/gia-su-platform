@@ -1,9 +1,10 @@
-﻿'use client';
+'use client';
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authApi } from '@/lib/api/auth';
+import { saveClientAuthUser } from '@/lib/client-auth';
 
 type RolePreset = {
   label: string;
@@ -49,10 +50,16 @@ export default function LoginPage() {
 
     try {
       const response = await authApi.login(email.trim(), password);
-      const data = response.data as { role?: string } | null;
-      if (!data?.role) {
-        throw new Error('Backend không trả về vai trò người dùng.');
+      const data = response.data as { id?: string; email?: string; fullName?: string; role?: 'ADMIN' | 'TEACHER' | 'STUDENT' } | null;
+      if (!data?.role || !data.email || !data.id) {
+        throw new Error('Backend khong tra ve du thong tin nguoi dung.');
       }
+      saveClientAuthUser({
+        id: data.id,
+        email: data.email,
+        fullName: data.fullName,
+        role: data.role,
+      });
       router.push(data.role === 'STUDENT' ? '/student/dashboard' : '/teacher/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể đăng nhập. Vui lòng thử lại.');

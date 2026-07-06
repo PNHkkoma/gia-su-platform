@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -2092,3 +2092,168 @@ p,
   font-variant-numeric: tabular-nums;
 }
 
+
+.search-field {
+  min-width: min(100%, 360px);
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding-inline: 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(23, 43, 58, 0.045);
+}
+
+.search-field:focus-within {
+  border-color: #58b8ee;
+  box-shadow: 0 0 0 4px rgba(74, 174, 232, 0.1);
+}
+
+.search-field-icon {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.search-field-input {
+  border: 0;
+  box-shadow: none;
+  padding-inline: 0;
+}
+
+.search-field-input:focus {
+  box-shadow: none;
+}
+
+.vocabulary-toolbar {
+  align-items: end;
+}
+
+.vocabulary-toolbar-actions {
+  width: min(100%, 360px);
+}
+
+.vocabulary-item-card {
+  align-items: start;
+}
+
+.vocabulary-item-editor {
+  width: 100%;
+}
+
+.vocabulary-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pagination-page {
+  min-width: 44px;
+  padding-inline: 0;
+}
+
+@media (max-width: 900px) {
+  .vocabulary-toolbar-actions,
+  .search-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pagination-bar,
+  .vocabulary-item-actions {
+    justify-content: flex-start;
+  }
+}
+
+.assignment-panel {
+  margin-top: 22px;
+}
+
+.assignment-target-grid {
+  align-items: start;
+}
+
+.assignment-student-picker {
+  display: grid;
+  gap: 10px;
+}
+
+.assignment-picker-label {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.assignment-student-list {
+  max-height: 260px;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.assignment-student-option {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.assignment-student-option input {
+  margin-top: 3px;
+  accent-color: var(--brand);
+}
+
+.assignment-student-option strong,
+.assignment-student-option small {
+  display: block;
+}
+
+.assignment-student-option small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.assignment-item {
+  grid-template-columns: 1fr;
+}
+
+.student-vocabulary-card {
+  display: grid;
+  gap: 14px;
+}
+
+.student-vocabulary-head {
+  align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+  .assignment-target-grid {
+    grid-template-columns: 1fr;
+  }
+}

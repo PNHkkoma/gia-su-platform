@@ -1,4 +1,4 @@
-﻿ package com.giasu.common;
+package com.giasu.common;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +13,7 @@ public class ApiExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
             .findFirst()
             .map(error -> error.getField() + ": " + error.getDefaultMessage())
-            .orElse("Dá»¯ liá»‡u khÃ´ng há»£p lá»‡");
+            .orElse("Du lieu khong hop le");
         return ResponseEntity.badRequest().body(ApiResponse.fail("VALIDATION_ERROR", message));
     }
 
@@ -26,6 +26,6 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> generic(Exception ex) {
         ex.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ApiResponse.fail("INTERNAL_ERROR", "Backend Ä‘ang gáº·p lá»—i. Vui lÃ²ng kiá»ƒm tra log Spring Boot."));
+            .body(ApiResponse.fail("INTERNAL_ERROR", "Backend dang gap loi. Vui long kiem tra log Spring Boot."));
     }
 }
