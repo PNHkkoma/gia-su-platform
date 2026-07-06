@@ -51,23 +51,26 @@ enum ShowResultMode {
 }
 
 model User {
-  id            String          @id @default(uuid())
-  email         String          @unique
-  passwordHash  String
-  fullName      String
-  role          Role            @default(STUDENT)
-  avatarUrl     String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  deletedAt     DateTime?
-  teacherProfile TeacherProfile?
-  classes       Class[]         @relation("TeacherClasses")
-  studentEnrollments ClassStudent[]
-  questions     Question[]      @relation("TeacherQuestions")
-  tests         Test[]          @relation("TeacherTests")
-  attempts      Attempt[]
-  assignments   TestAssignment[] @relation("StudentAssignments")
-  notifications Notification[]
+  id                    String                      @id @default(uuid())
+  email                 String                      @unique
+  passwordHash          String
+  fullName              String
+  role                  Role                        @default(STUDENT)
+  avatarUrl             String?
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
+  deletedAt             DateTime?
+  teacherProfile        TeacherProfile?
+  classes               Class[]                     @relation("TeacherClasses")
+  studentEnrollments    ClassStudent[]
+  questions             Question[]                  @relation("TeacherQuestions")
+  tests                 Test[]                      @relation("TeacherTests")
+  attempts              Attempt[]
+  assignments           TestAssignment[]            @relation("StudentAssignments")
+  vocabularySets        VocabularySet[]             @relation("TeacherVocabularySets")
+  vocabularyAssignments VocabularyAssignment[]      @relation("StudentVocabularyAssignments")
+  vocabularyProgress    StudentVocabularyProgress[] @relation("StudentVocabularyProgress")
+  notifications         Notification[]
 }
 
 model TeacherProfile {
@@ -80,29 +83,31 @@ model TeacherProfile {
 }
 
 model Class {
-  id          String         @id @default(uuid())
-  teacher     User           @relation("TeacherClasses", fields: [teacherId], references: [id])
-  teacherId   String
-  name        String
-  description String?
-  subject     String
-  level       String
-  inviteCode  String         @unique
-  status      String         @default("ACTIVE")
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  students    ClassStudent[]
-  assignments TestAssignment[]
+  id                    String                 @id @default(uuid())
+  teacher               User                   @relation("TeacherClasses", fields: [teacherId], references: [id])
+  teacherId             String
+  name                  String
+  description           String?
+  subject               String
+  level                 String
+  inviteCode            String                 @unique
+  status                String                 @default("ACTIVE")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  students              ClassStudent[]
+  assignments           TestAssignment[]
+  vocabularyAssignments VocabularyAssignment[]
 }
 
 model ClassStudent {
-  id         String   @id @default(uuid())
-  class      Class    @relation(fields: [classId], references: [id])
-  classId    String
-  student    User     @relation(fields: [studentId], references: [id])
-  studentId  String
-  joinedAt   DateTime @default(now())
-  status     String   @default("ACTIVE")
+  id        String   @id @default(uuid())
+  class     Class    @relation(fields: [classId], references: [id])
+  classId   String
+  student   User     @relation(fields: [studentId], references: [id])
+  studentId String
+  joinedAt  DateTime @default(now())
+  status    String   @default("ACTIVE")
+
   @@unique([classId, studentId])
 }
 
@@ -136,90 +141,152 @@ model QuestionOption {
 }
 
 model Test {
-  id               String          @id @default(uuid())
-  teacher          User            @relation("TeacherTests", fields: [teacherId], references: [id])
+  id               String           @id @default(uuid())
+  teacher          User             @relation("TeacherTests", fields: [teacherId], references: [id])
   teacherId        String
   title            String
   description      String?
-  slug             String          @unique
-  status           TestStatus      @default(DRAFT)
+  slug             String           @unique
+  status           TestStatus       @default(DRAFT)
   durationMinutes  Int?
-  maxAttempts      Int             @default(1)
+  maxAttempts      Int              @default(1)
   passScore        Float?
-  shuffleQuestions Boolean         @default(false)
-  shuffleOptions   Boolean         @default(false)
-  showResultMode   ShowResultMode  @default(IMMEDIATE)
-  showExplanation  Boolean         @default(true)
-  version          Int             @default(1)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  shuffleQuestions Boolean          @default(false)
+  shuffleOptions   Boolean          @default(false)
+  showResultMode   ShowResultMode   @default(IMMEDIATE)
+  showExplanation  Boolean          @default(true)
+  version          Int              @default(1)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   questions        TestQuestion[]
   assignments      TestAssignment[]
   attempts         Attempt[]
 }
 
 model TestQuestion {
-  id          String   @id @default(uuid())
-  test        Test     @relation(fields: [testId], references: [id])
-  testId      String
-  question    Question @relation(fields: [questionId], references: [id])
-  questionId  String
-  orderIndex  Int
+  id             String   @id @default(uuid())
+  test           Test     @relation(fields: [testId], references: [id])
+  testId         String
+  question       Question @relation(fields: [questionId], references: [id])
+  questionId     String
+  orderIndex     Int
   pointsOverride Int?
 }
 
 model TestAssignment {
-  id         String   @id @default(uuid())
-  test       Test     @relation(fields: [testId], references: [id])
+  id         String    @id @default(uuid())
+  test       Test      @relation(fields: [testId], references: [id])
   testId     String
-  class      Class?   @relation(fields: [classId], references: [id])
+  class      Class?    @relation(fields: [classId], references: [id])
   classId    String?
-  student    User?    @relation("StudentAssignments", fields: [studentId], references: [id])
+  student    User?     @relation("StudentAssignments", fields: [studentId], references: [id])
   studentId  String?
-  accessCode String?  @unique
+  accessCode String?   @unique
   opensAt    DateTime?
   closesAt   DateTime?
 }
 
+model VocabularySet {
+  id          String                 @id @default(uuid())
+  teacher     User                   @relation("TeacherVocabularySets", fields: [teacherId], references: [id])
+  teacherId   String
+  title       String
+  description String?
+  slug        String                 @unique
+  subject     String?
+  level       String?
+  status      String                 @default("DRAFT")
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  items       VocabularyItem[]
+  assignments VocabularyAssignment[]
+}
+
+model VocabularyItem {
+  id              String                      @id @default(uuid())
+  vocabularySet   VocabularySet               @relation(fields: [vocabularySetId], references: [id])
+  vocabularySetId String
+  term            String
+  meaning         String
+  pronunciation   String?
+  example         String?
+  imageUrl        String?
+  orderIndex      Int
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+  progress        StudentVocabularyProgress[]
+}
+
+model VocabularyAssignment {
+  id              String        @id @default(uuid())
+  vocabularySet   VocabularySet @relation(fields: [vocabularySetId], references: [id])
+  vocabularySetId String
+  class           Class?        @relation(fields: [classId], references: [id])
+  classId         String?
+  student         User?         @relation("StudentVocabularyAssignments", fields: [studentId], references: [id])
+  studentId       String?
+  accessCode      String?       @unique
+  opensAt         DateTime?
+  closesAt        DateTime?
+  createdAt       DateTime      @default(now())
+}
+
+model StudentVocabularyProgress {
+  id               String         @id @default(uuid())
+  student          User           @relation("StudentVocabularyProgress", fields: [studentId], references: [id])
+  studentId        String
+  vocabularyItem   VocabularyItem @relation(fields: [vocabularyItemId], references: [id])
+  vocabularyItemId String
+  familiarity      Int            @default(0)
+  correctCount     Int            @default(0)
+  wrongCount       Int            @default(0)
+  lastReviewedAt   DateTime?
+  nextReviewAt     DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@unique([studentId, vocabularyItemId])
+}
+
 model Attempt {
-  id             String          @id @default(uuid())
-  test           Test            @relation(fields: [testId], references: [id])
-  testId         String
-  student        User            @relation(fields: [studentId], references: [id])
-  studentId      String
-  status         AttemptStatus   @default(IN_PROGRESS)
-  startedAt      DateTime        @default(now())
-  submittedAt    DateTime?
-  expiresAt      DateTime?
-  score          Float?
-  maxScore       Int
-  correctCount   Int             @default(0)
-  totalQuestions Int             @default(0)
+  id              String          @id @default(uuid())
+  test            Test            @relation(fields: [testId], references: [id])
+  testId          String
+  student         User            @relation(fields: [studentId], references: [id])
+  studentId       String
+  status          AttemptStatus   @default(IN_PROGRESS)
+  startedAt       DateTime        @default(now())
+  submittedAt     DateTime?
+  expiresAt       DateTime?
+  score           Float?
+  maxScore        Int
+  correctCount    Int             @default(0)
+  totalQuestions  Int             @default(0)
   durationSeconds Int?
-  idempotencyKey String?
-  answers        AttemptAnswer[]
+  idempotencyKey  String?
+  answers         AttemptAnswer[]
 }
 
 model AttemptAnswer {
-  id               String    @id @default(uuid())
-  attempt          Attempt   @relation(fields: [attemptId], references: [id])
-  attemptId        String
-  question         Question  @relation(fields: [questionId], references: [id])
-  questionId       String
+  id                String   @id @default(uuid())
+  attempt           Attempt  @relation(fields: [attemptId], references: [id])
+  attemptId         String
+  question          Question @relation(fields: [questionId], references: [id])
+  questionId        String
   selectedOptionIds String[] @default([])
-  textAnswer       String?
-  isCorrect        Boolean?
-  score            Float?
-  teacherFeedback  String?
-  updatedAt        DateTime  @updatedAt
+  textAnswer        String?
+  isCorrect         Boolean?
+  score             Float?
+  teacherFeedback   String?
+  updatedAt         DateTime @updatedAt
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id])
   userId    String
   title     String
   content   String
   readAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }

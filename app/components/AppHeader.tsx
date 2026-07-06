@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import Link from 'next/link';
-import { Home } from 'lucide-react';
+import { BookOpen, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function AppHeader({ role = 'guest' }: { role?: 'guest' | 'teacher' | 'student' }) {
@@ -23,6 +23,18 @@ export function AppHeader({ role = 'guest' }: { role?: 'guest' | 'teacher' | 'st
           <Home size={16} strokeWidth={2.2} />
           Trang chính
         </Link>
+        {role === 'teacher' ? (
+          <Link className="btn soft" href="/teacher/vocabulary">
+            <BookOpen size={16} strokeWidth={2.2} />
+            Vocabulary
+          </Link>
+        ) : null}
+        {role === 'student' ? (
+          <Link className="btn soft" href="/student/vocabulary">
+            <BookOpen size={16} strokeWidth={2.2} />
+            Vocabulary
+          </Link>
+        ) : null}
         {role !== 'guest' ? <span className="role-label">{role === 'teacher' ? 'Giáo viên' : 'Học sinh'}</span> : null}
         {role === 'guest' ? (
           <Link className="btn primary" href="/auth/login">Đăng nhập</Link>

@@ -420,7 +420,7 @@ p {
 .stat-card span {
   color: var(--muted);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .stat-card strong {
@@ -1352,7 +1352,7 @@ p {
   border: 1.5px solid var(--brand);
   border-radius: 9999px;
   background: var(--brand);
-  color: white;
+  color: rgb(244, 240, 240);
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
@@ -1362,7 +1362,7 @@ p {
 }
 
 .study-submit:hover {
-  background: var(--brand-dark);
+  background: rgb(244, 240, 240);
   border-color: var(--brand-dark);
   box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
   transform: translateY(-2px);
@@ -1845,7 +1845,7 @@ h1 {
 
 .study-submit {
   border-color: #1d9bf0;
-  color: #0878c9;
+  color: #f1f1f1;
 }
 
 .study-submit:hover {
@@ -1861,3 +1861,234 @@ h1 {
     font-size: 18px;
   }
 }
+
+/* Tone down Golden pony theme: mostly white, softer sky-blue accents */
+:root {
+  --brand: #4aaee8;
+  --brand-dark: #2787c4;
+  --brand-soft: #eef8ff;
+  --pony-orange: #ff7a3d;
+  --ink: #172b3a;
+  --text: #334b5f;
+  --muted: #718295;
+  --soft: #f4fbff;
+  --line: #dcebf4;
+  --bg: #ffffff;
+  --card: #ffffff;
+}
+
+body {
+  background: #ffffff;
+  color: var(--ink);
+}
+
+.topbar,
+.study-exam-topbar {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom-color: #e5edf3;
+  box-shadow: 0 6px 18px rgba(39, 135, 196, 0.06);
+}
+
+.container,
+.study-exam-page,
+.login-page {
+  background: #ffffff;
+}
+
+.card,
+.login-shell,
+.login-card,
+.role-option,
+.quick-box,
+.study-question-panel,
+.study-sidebar,
+.test-list-button,
+.login-info-grid div {
+  background: #ffffff;
+  border-color: #e0eaf1;
+  box-shadow: 0 8px 20px rgba(23, 43, 58, 0.045);
+}
+
+.login-brand-panel {
+  background: #ffffff;
+}
+
+.btn {
+  border-color: #d7e8f2;
+  background: #ffffff;
+  color: #244258;
+}
+
+.btn:hover {
+  border-color: #a8d8f3;
+  background: #f7fcff;
+}
+
+.btn.primary,
+.login-submit {
+  background: #58b8ee;
+  border-color: #58b8ee;
+  color: white;
+  box-shadow: 0 8px 18px rgba(74, 174, 232, 0.18);
+}
+
+.btn.primary:hover,
+.login-submit:hover {
+  background: #3da4dd;
+  border-color: #3da4dd;
+}
+
+.btn.soft,
+.badge,
+.study-part,
+.study-question-number {
+  background: #f0f9ff;
+  color: #2787c4;
+  border-color: #d7eefa;
+}
+
+.input,
+.textarea,
+.select,
+.login-input {
+  background: #ffffff;
+  border-color: #dcebf4;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus,
+.login-input:focus {
+  border-color: #58b8ee;
+  box-shadow: 0 0 0 4px rgba(74, 174, 232, 0.10);
+}
+
+.mascot-panel {
+  background: #ffffff;
+}
+
+.study-exam-shell,
+.study-exam-title {
+  background: transparent;
+}
+
+.study-toggle,
+.study-question-grid button.done,
+.study-question-grid button.correct {
+  background: #58b8ee;
+  border-color: #58b8ee;
+}
+
+.study-submit {
+  border-color: #58b8ee;
+  color: #2787c4;
+  background: #ffffff;
+}
+
+.study-submit:hover {
+  background: #58b8ee;
+  color: white;
+}
+
+/* Typography system lock: keep Vietnamese text readable and consistent site-wide. */
+:root {
+  --font-sans: "Plus Jakarta Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: var(--font-sans);
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-sans);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis-weight: none;
+}
+
+h1,
+h2,
+h3,
+.brand,
+.brand-name,
+.login-brand,
+.login-brand-panel h1,
+.login-card-head h2,
+.study-exam-title h1,
+.study-question-head h2 {
+  font-family: var(--font-heading);
+  color: var(--ink);
+  letter-spacing: -0.012em;
+  font-synthesis-weight: none;
+}
+
+h1,
+.login-brand-panel h1 {
+  font-weight: 800;
+}
+
+h2,
+h3,
+.brand,
+.brand-name,
+.login-brand,
+.login-card-head h2,
+.study-exam-title h1,
+.study-question-head h2 {
+  font-weight: 700;
+}
+
+.eyebrow,
+.login-kicker,
+.badge,
+.role-label,
+.meta,
+.stat-card span,
+.result-summary span,
+.study-time-label,
+.study-part,
+.study-sidebar h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.btn,
+.login-submit,
+.form label,
+.login-form label,
+.role-option strong,
+.meta strong,
+.notice,
+.error {
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+p,
+.login-copy,
+.quick-box,
+.text-answer-review,
+.question-feedback,
+.study-option {
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+
+.stat-card strong,
+.result-summary strong,
+.study-timer,
+.study-question-number,
+.study-question-grid button,
+.question-chip {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
