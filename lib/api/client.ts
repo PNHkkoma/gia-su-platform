@@ -1,31 +1,22 @@
-﻿const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1').replace(/\/$/, '');
-
-export type ApiError = {
-  code?: string;
-  message?: string;
-};
+﻿const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 export type ApiResponse<T> = {
   success: boolean;
   data: T | null;
-  error: ApiError | null;
+  error: { code?: string; message?: string } | null;
 };
 
-function normalizePath(path: string) {
-  return path.startsWith('/') ? path : `/${path}`;
-}
-
-function normalizePayload<T>(payload: unknown): ApiResponse<T> {
+function normalizeResponse<T>(payload: unknown): ApiResponse<T> {
   if (!payload || typeof payload !== 'object') {
     return { success: true, data: null, error: null };
   }
 
-  const record = payload as Partial<ApiResponse<T>>;
-  if ('success' in record) {
+  const response = payload as Partial<ApiResponse<T>>;
+  if ('success' in response) {
     return {
-      success: Boolean(record.success),
-      data: (record.data ?? null) as T | null,
-      error: record.error ?? null,
+      success: Boolean(response.success),
+      data: (response.data ?? null) as T | null,
+      error: response.error ?? null,
     };
   }
 
@@ -33,16 +24,12 @@ function normalizePayload<T>(payload: unknown): ApiResponse<T> {
 }
 
 export async function request<T>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  const headers = new Headers(options.headers);
-  if (!headers.has('Content-Type') && options.body) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  const response = await fetch(`${API_BASE_URL}${normalizePath(path)}`, {
-    cache: 'no-store',
-    credentials: 'include',
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
     ...options,
-    headers,
   });
 
   if (response.status === 204) {
@@ -50,11 +37,9 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
   }
 
   const contentType = response.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json')
-    ? await response.json().catch(() => null)
-    : await response.text().catch(() => null);
-
-  const normalized = normalizePayload<T>(payload);
+  const isJson = contentType.includes('application/json');
+  const payload = isJson ? await response.json().catch(() => null) : await response.text().catch(() => null);
+  const normalized = normalizeResponse<T>(payload);
 
   if (!response.ok || !normalized.success) {
     throw new Error(normalized.error?.message || response.statusText || 'Request failed');

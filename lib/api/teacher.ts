@@ -11,6 +11,7 @@ export const teacherApi = {
     }),
 
   getTests: () => request('/teachers/tests'),
+  getTest: (slug: string) => request('/teachers/tests/' + slug),
   createTest: (payload: Record<string, unknown>) =>
     request('/teachers/tests', {
       method: 'POST',

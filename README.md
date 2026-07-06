@@ -1,49 +1,50 @@
-﻿# Gia Su Platform
+﻿# Gia SÆ° Platform
 
-Nền tảng kiểm tra online cho giáo viên/gia sư/trung tâm.
+á»¨ng dá»¥ng ná»n táº£ng kiá»ƒm tra online cho giÃ¡o viÃªn/gia sÆ°/trung tÃ¢m, xÃ¢y dá»±ng báº±ng Next.js, Tailwind CSS vÃ  Prisma.
 
-## Kiến trúc hiện tại
+## CÃ i Ä‘áº·t
 
-- Frontend: Next.js + Tailwind CSS.
-- Backend chính: Spring Boot trong `backend-springboot`.
-- Database: PostgreSQL, schema/migration hiện vẫn được quản lý bằng Prisma.
-- Frontend không gọi Next API route trong `/app`; toàn bộ request nghiệp vụ đi qua `NEXT_PUBLIC_API_URL`, mặc định `http://localhost:8080/api/v1`.
+1. CÃ i dependencies:
+   ```bash
+   npm install
+   ```
+2. Táº¡o file `.env` tá»« máº«u:
+   ```bash
+   cp .env.example .env
+   ```
+3. Cháº¡y migration vÃ  seed dá»¯ liá»‡u:
+   ```bash
+   npm run prisma:migrate
+   npm run prisma:seed
+   ```
+4. Cháº¡y á»©ng dá»¥ng:
+   ```bash
+   npm run dev
+   ```
 
-## Cài đặt frontend
+## ThÃ´ng tin chÃ­nh
 
-```bash
-npm install
-npm run dev
-```
+- Frontend: Next.js 15, Tailwind CSS
+- Backend: API route fullstack
+- Database: Prisma + PostgreSQL
+- Auth: JWT, role-based access control
 
-Nếu Java backend chạy ở URL khác:
+## Structure
 
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1 npm run dev
-```
+- `app/teacher` - trang teacher dashboard
+- `app/student` - trang há»c sinh
+- `app/api/auth` - API auth register/login/logout/refresh
+- `prisma/schema.prisma` - mÃ´ hÃ¬nh dá»¯ liá»‡u
 
-## Cài đặt backend Spring Boot
+## MVP Ä‘Ã£ implement
 
-```bash
-cd backend-springboot
-mvn spring-boot:run
-```
+- Auth email/password
+- Teacher dashboard khung cÆ¡ báº£n
+- Student test list
+- Schema dá»¯ liá»‡u core cho teacher, lá»›p, cÃ¢u há»i, bÃ i test, attempt
 
-Spring Boot dùng mặc định:
+## Cháº¡y thá»­
 
-```bash
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/giasu_platform
-SPRING_DATASOURCE_USERNAME=giasu_user
-SPRING_DATASOURCE_PASSWORD=giasu_password
-```
-
-## Database
-
-Prisma hiện chỉ còn vai trò schema/migration/seed:
-
-```bash
-npm run prisma:migrate
-npm run prisma:seed
-```
-
-Runtime frontend không import Prisma client.
+- Má»Ÿ `http://localhost:3000`
+- Truy cáº­p `http://localhost:3000/teacher/dashboard`
+- Truy cáº­p `http://localhost:3000/student/tests`

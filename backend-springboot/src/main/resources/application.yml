@@ -1,16 +1,9 @@
 ﻿spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/giasu_platform}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/giasu_platform?options=-c%20TimeZone=Asia/Ho_Chi_Minh}
     username: ${SPRING_DATASOURCE_USERNAME:giasu_user}
     password: ${SPRING_DATASOURCE_PASSWORD:giasu_password}
     driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
 
 server:
   port: 8080

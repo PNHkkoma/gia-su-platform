@@ -1,11 +1,10 @@
-package com.giasu.service;
+﻿package com.giasu.service;
 
 import com.giasu.common.Slugs;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Array;
 import java.sql.Timestamp;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -79,8 +78,8 @@ public class TestService {
             row.put("id", rs.getString("slug"));
             row.put("databaseId", rs.getString("id"));
             row.put("title", rs.getString("title"));
-            row.put("description", text(rs.getString("description"), "Bài kiểm tra được giáo viên đăng cho học sinh làm."));
-            row.put("group", "Bài kiểm tra chung");
+            row.put("description", text(rs.getString("description"), "BÃ i kiá»ƒm tra Ä‘Æ°á»£c giÃ¡o viÃªn Ä‘Äƒng cho há»c sinh lÃ m."));
+            row.put("group", "BÃ i kiá»ƒm tra chung");
             row.put("teacher", rs.getString("teacherName"));
             row.put("durationMinutes", value(rs.getObject("durationMinutes"), 40));
             row.put("totalPoints", rs.getInt("maxScore"));
@@ -107,7 +106,7 @@ public class TestService {
     public Map<String, Object> createTest(Map<String, Object> body) {
         String teacherId = teacherId(str(body.get("teacherId")), str(body.get("teacherEmail")));
         String id = UUID.randomUUID().toString();
-        String title = text(str(body.get("title")), "Bài kiểm tra mới");
+        String title = text(str(body.get("title")), "BÃ i kiá»ƒm tra má»›i");
         String slug = uniqueSlug(title);
         jdbc.update("""
             insert into "Test" ("id", "teacherId", "title", "description", "slug", "status",
@@ -201,7 +200,7 @@ public class TestService {
             insert into "Class" ("id", "teacherId", "name", "description", "subject", "level", "inviteCode", "status", "createdAt", "updatedAt")
             values (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', current_timestamp, current_timestamp)
             """, id, teacherId(str(body.get("teacherId")), str(body.get("teacherEmail"))),
-            text(str(body.get("name")), "Lớp mới"), str(body.get("description")),
+            text(str(body.get("name")), "Lá»›p má»›i"), str(body.get("description")),
             text(str(body.get("subject")), "Chung"), text(str(body.get("level")), "Chung"), invite);
         return jdbc.queryForMap("select * from \"Class\" where \"id\" = ?", id);
     }
@@ -277,12 +276,25 @@ public class TestService {
             }
             jdbc.update("""
                 insert into "AttemptAnswer" ("id", "attemptId", "questionId", "selectedOptionIds", "textAnswer", "isCorrect", "score", "updatedAt")
-                values (?, ?, ?, ?, ?, ?, ?, current_timestamp)
-                """, UUID.randomUUID().toString(), attemptId, questionId, emptyTextArray(), str(answer), ok, ok ? (double) points : 0.0);
-            details.add(Map.of("questionId", questionId, "selectedAnswer", value(answer, ""), "correctAnswer", correct.size() == 1 ? correct.get(0) : correct, "isCorrect", ok, "explanation", value(question.get("explanation"), "")));
+                values (?, ?, ?, ARRAY[]::TEXT[], ?, ?, ?, current_timestamp)
+                """, UUID.randomUUID().toString(), attemptId, questionId, answerText(answer), ok, ok ? (double) points : 0.0);
+            Map<String, Object> detail = new LinkedHashMap<>();
+            detail.put("questionId", questionId);
+            detail.put("selectedAnswer", value(answer, ""));
+            detail.put("correctAnswer", correct.size() == 1 ? correct.get(0) : correct);
+            detail.put("isCorrect", ok);
+            detail.put("explanation", value(question.get("explanation"), ""));
+            details.add(detail);
         }
         jdbc.update("update \"Attempt\" set \"correctCount\" = ?, \"score\" = ? where \"id\" = ?", correctCount, score, attemptId);
-        return Map.of("attemptId", attemptId, "correctCount", correctCount, "totalQuestions", questionCount(testId), "score", score, "maxScore", maxScore(testId), "answers", details);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("attemptId", attemptId);
+        result.put("correctCount", correctCount);
+        result.put("totalQuestions", questionCount(testId));
+        result.put("score", score);
+        result.put("maxScore", maxScore(testId));
+        result.put("answers", details);
+        return result;
     }
 
     public Map<String, Object> profile(String email) {
@@ -308,7 +320,7 @@ public class TestService {
         ), studentId(studentId, studentEmail));
     }
 
-    private Map<String, Object> teacherTest(String slug) {
+    public Map<String, Object> teacherTest(String slug) {
         List<Map<String, Object>> rows = teacherTests(null, null, true).stream().filter(row -> slug.equals(row.get("slug"))).toList();
         if (rows.isEmpty()) return null;
         rows.get(0).put("questions", questionsForSlug(slug, false));
@@ -360,7 +372,7 @@ public class TestService {
             insert into "Question" ("id", "ownerTeacherId", "type", "content", "explanation", "subject", "topic", "difficulty", "points", "createdAt", "updatedAt")
             values (?, ?, ?::"QuestionType", ?, ?, ?, ?, ?::"Difficulty", ?, current_timestamp, current_timestamp)
             """, id, teacherId, dbQuestionType(text(str(body.get("type")), "SINGLE_CHOICE")),
-            text(str(body.get("prompt")), text(str(body.get("content")), "Câu hỏi")), str(body.get("explanation")),
+            text(str(body.get("prompt")), text(str(body.get("content")), "CÃ¢u há»i")), str(body.get("explanation")),
             text(str(body.get("subject")), "Chung"), text(str(body.get("topic")), "Chung"), enumText(str(body.get("difficulty")), "EASY"), intVal(body.get("points"), 1));
         List<Object> opts = rawList(body.get("options"));
         Object correct = body.get("correctAnswer");
@@ -377,7 +389,7 @@ public class TestService {
 
     private String teacherId(String teacherId, String email) {
         String id = nullableTeacherId(teacherId, email);
-        if (id == null) throw new IllegalStateException("Không tìm thấy tài khoản giáo viên");
+        if (id == null) throw new IllegalStateException("KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n giÃ¡o viÃªn");
         return id;
     }
 
@@ -396,7 +408,7 @@ public class TestService {
         List<String> ids = jdbc.queryForList("select \"id\" from \"User\" where \"email\" = ? and \"role\" = 'STUDENT'::\"Role\"", String.class, text(email, "student@example.com"));
         if (!ids.isEmpty()) return ids.get(0);
         ids = jdbc.queryForList("select \"id\" from \"User\" where \"role\" = 'STUDENT'::\"Role\" order by \"createdAt\" limit 1", String.class);
-        if (ids.isEmpty()) throw new IllegalStateException("Không tìm thấy tài khoản học sinh");
+        if (ids.isEmpty()) throw new IllegalStateException("KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n há»c sinh");
         return ids.get(0);
     }
 
@@ -424,10 +436,11 @@ public class TestService {
         return slug;
     }
 
-    private Array emptyTextArray() {
-        return jdbc.execute(connection -> connection.createArrayOf("text", new String[]{}));
-    }
 
+    private String answerText(Object answer) {
+        if (answer instanceof List<?> list) return String.join(", ", list.stream().map(String::valueOf).toList());
+        return str(answer);
+    }
     private boolean isCorrect(Object answer, List<String> correct) {
         if (answer instanceof List<?> list) return list.stream().map(String::valueOf).sorted().toList().equals(correct.stream().sorted().toList());
         return correct.size() == 1 && correct.get(0).equalsIgnoreCase(str(answer));

@@ -1,4 +1,4 @@
-﻿package com.giasu.common;
+package com.giasu.common;
 
 import java.text.Normalizer;
 import java.time.Instant;

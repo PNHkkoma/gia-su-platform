@@ -1,4 +1,4 @@
-﻿package com.giasu.common;
+package com.giasu.common;
 
 public record ApiResponse<T>(boolean success, T data, Object error) {
     public static <T> ApiResponse<T> ok(T data) {

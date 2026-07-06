@@ -1,4 +1,4 @@
-package com.giasu.controller;
+﻿package com.giasu.controller;
 
 import com.giasu.common.ApiResponse;
 import com.giasu.service.TestService;
@@ -41,6 +41,12 @@ public class TeacherController {
         return ApiResponse.ok(testService.teacherTests(teacherId, teacherEmail, admin));
     }
 
+
+    @GetMapping("/tests/{slug}")
+    public ApiResponse<?> test(@PathVariable String slug) {
+        Map<String, Object> test = testService.teacherTest(slug);
+        return test == null ? ApiResponse.fail("NOT_FOUND", "Không tìm thấy bài kiểm tra") : ApiResponse.ok(test);
+    }
     @PostMapping("/tests")
     public ApiResponse<?> createTest(@RequestBody Map<String, Object> body) {
         return ApiResponse.ok(testService.createTest(body));
@@ -49,14 +55,14 @@ public class TeacherController {
     @PatchMapping("/tests/{slug}")
     public ApiResponse<?> updateTest(@PathVariable String slug, @RequestBody Map<String, Object> body) {
         Map<String, Object> test = testService.updateTest(slug, body);
-        return test == null ? ApiResponse.fail("NOT_FOUND", "Không tìm thấy bài kiểm tra") : ApiResponse.ok(test);
+        return test == null ? ApiResponse.fail("NOT_FOUND", "KhÃ´ng tÃ¬m tháº¥y bÃ i kiá»ƒm tra") : ApiResponse.ok(test);
     }
 
     @DeleteMapping("/tests/{slug}")
     public ApiResponse<?> deleteTest(@PathVariable String slug) {
         return testService.deleteTest(slug)
             ? ApiResponse.ok(Map.of("deleted", true))
-            : ApiResponse.fail("NOT_FOUND", "Không tìm thấy bài kiểm tra");
+            : ApiResponse.fail("NOT_FOUND", "KhÃ´ng tÃ¬m tháº¥y bÃ i kiá»ƒm tra");
     }
 
     @GetMapping("/classes")

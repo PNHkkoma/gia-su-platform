@@ -1,44 +1,29 @@
-﻿import { authApi, type AuthUser } from '@/lib/api/auth';
+﻿import { cookies } from 'next/headers';
+import { verifyToken } from './jwt';
 
-const STORAGE_KEY = 'giasu.auth.user';
-
-function readStoredUser(): AuthUser | null {
-  if (typeof window === 'undefined') return null;
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as AuthUser;
-  } catch {
-    window.localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
-}
-
-export async function loginWithEmail(email: string, password: string) {
-  const response = await authApi.login(email, password);
-  if (response.data && typeof window !== 'undefined') {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data));
-  }
-  return response;
-}
-
-export async function logout() {
-  const response = await authApi.logout();
-  if (typeof window !== 'undefined') {
-    window.localStorage.removeItem(STORAGE_KEY);
-  }
-  return response;
-}
+export type AuthUser = {
+  id: string;
+  email: string;
+  role: 'ADMIN' | 'TEACHER' | 'STUDENT';
+};
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  return readStoredUser();
+  const cookieStore = cookies();
+  const token = cookieStore.get('accessToken')?.value;
+  if (!token) return null;
+
+  try {
+    const payload = verifyToken<{ id: string; email: string; role: AuthUser['role'] }>(token);
+    return { id: payload.id, email: payload.email, role: payload.role };
+  } catch {
+    return null;
+  }
 }
 
 export async function requireUserRole(requiredRoles: AuthUser['role'][]) {
   const user = await getCurrentUser();
   if (!user || !requiredRoles.includes(user.role)) {
-    throw new Error('Unauthorized');
+    throw new Response('Unauthorized', { status: 401 });
   }
   return user;
 }
@@ -54,5 +39,3 @@ export async function requireStudent() {
 export async function requireAdmin() {
   return requireUserRole(['ADMIN']);
 }
-
-export type { AuthUser };

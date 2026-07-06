@@ -1,4 +1,4 @@
-﻿package com.giasu.config;
+package com.giasu.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
