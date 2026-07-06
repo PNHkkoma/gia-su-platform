@@ -1,0 +1,18 @@
+# docker-compose.yml
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16
+    container_name: giasu_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: giasu_user
+      POSTGRES_PASSWORD: giasu_password
+      POSTGRES_DB: giasu_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - giasu_pg_data:/var/lib/postgresql/data
+
+volumes:
+  giasu_pg_data:
