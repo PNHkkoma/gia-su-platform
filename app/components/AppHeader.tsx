@@ -15,8 +15,8 @@ export function AppHeader({ role = 'guest' }: { role?: 'guest' | 'teacher' | 'st
   return (
     <header className="topbar">
       <Link className="brand" href={home}>
-        <span className="logo">GS</span>
-        <span>Giáo Sư</span>
+        <span className="logo image-logo"><img alt="Golden pony" className="brand-logo-img" src="/golden-pony.png" /></span>
+        <span className="brand-name">Golden pony</span>
       </Link>
       <nav className="nav" aria-label="Điều hướng chính">
         <Link className="btn soft" href={home}>

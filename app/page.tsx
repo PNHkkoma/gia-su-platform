@@ -8,22 +8,17 @@ export default function HomePage() {
       <section className="container">
         <div className="grid two" style={{ alignItems: 'center' }}>
           <div>
-            <div className="eyebrow">Nền tảng kiểm tra</div>
-            <h1>Giáo Sư</h1>
-            <p>Trang tạm đã được khôi phục để Next.js chạy lại với thư mục app. Các luồng chính có thể vào từ đây.</p>
+            <div className="eyebrow">Lớp học vui vẻ</div>
+            <h1>Golden pony</h1>
+            <p>Nền tảng kiểm tra online sáng sủa cho giáo viên tạo bài, học sinh làm bài và xem kết quả rõ ràng.</p>
             <div className="actions">
               <Link className="btn primary" href="/auth/login">Đăng nhập</Link>
               <Link className="btn" href="/teacher/dashboard">Giáo viên</Link>
               <Link className="btn" href="/student/dashboard">Học sinh</Link>
             </div>
           </div>
-          <div className="card panel">
-            <div className="eyebrow">Truy cập nhanh</div>
-            <div className="list">
-              <Link className="card list-item" href="/teacher/tests"><strong>Quản lý bài kiểm tra</strong></Link>
-              <Link className="card list-item" href="/teacher/tests/new"><strong>Tạo bài mới</strong></Link>
-              <Link className="card list-item" href="/student/tests"><strong>Danh sách bài của học sinh</strong></Link>
-            </div>
+          <div className="card panel mascot-panel">
+            <img alt="Golden pony mascot" className="mascot-image" src="/golden-pony.png" />
           </div>
         </div>
       </section>

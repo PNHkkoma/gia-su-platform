@@ -2,8 +2,8 @@
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Giáo Sư',
-  description: 'Nền tảng kiểm tra online cho giáo viên và học sinh',
+  title: 'Golden pony',
+  description: 'Nền tảng kiểm tra online sáng sủa cho giáo viên và học sinh',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

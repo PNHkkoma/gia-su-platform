@@ -161,7 +161,7 @@ export default function StudentTestsPage() {
     return (
       <main className="study-exam-page">
         <header className="study-exam-topbar">
-          <Link className="brand" href="/student/dashboard"><span className="logo">GS</span><span>Giáo Sư</span></Link>
+          <Link className="brand" href="/student/dashboard"><span className="logo image-logo"><img alt="Golden pony" className="brand-logo-img" src="/golden-pony.png" /></span><span className="brand-name">Golden pony</span></Link>
           <nav className="nav"><span className="role-label">Học sinh</span><button className="btn" onClick={() => setActiveTest(null)} type="button">Thoát</button></nav>
         </header>
 

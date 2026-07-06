@@ -66,13 +66,13 @@ export default function LoginPage() {
       <section className="login-shell">
         <div className="login-brand-panel">
           <Link className="login-brand" href="/">
-            <span className="login-logo">GS</span>
-            <span>Giáo Sư</span>
+            <span className="login-logo image-logo"><img alt="Golden pony" className="brand-logo-img" src="/golden-pony.png" /></span>
+            <span className="brand-name">Golden pony</span>
           </Link>
           <div>
-            <p className="login-kicker">Nền tảng kiểm tra</p>
-            <h1>Đăng nhập để tiếp tục công việc học tập.</h1>
-            <p className="login-copy">Một nơi cho giáo viên tạo bài, học sinh làm bài và dữ liệu được đồng bộ qua backend.</p>
+            <p className="login-kicker">Lớp học vui vẻ</p>
+            <h1>Học và kiểm tra cùng Golden pony.</h1>
+            <p className="login-copy">Không gian kiểm tra sáng sủa, dễ dùng cho giáo viên và học sinh.</p>
           </div>
           <div className="login-info-grid">
             <div>
