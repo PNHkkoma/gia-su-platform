@@ -88,6 +88,28 @@ type VocabularyAssignment = {
   createdAt?: string;
 };
 
+type WeakVocabularyWord = {
+  id: string;
+  word: string;
+  meaningVi?: string;
+  wrongCount: number;
+  confidence: number;
+  lastReviewedAt?: string;
+};
+
+type AssignmentStudentProgress = {
+  studentId: string;
+  studentName: string;
+  studentEmail?: string;
+  totalWords: number;
+  learnedWords: number;
+  masteredWords: number;
+  weakWords: number;
+  accuracy: number;
+  completionPercent: number;
+  lastStudiedAt?: string;
+  weakWordDetails?: WeakVocabularyWord[];
+};
 type AssignmentForm = {
   title: string;
   deadline: string;
@@ -181,6 +203,10 @@ export default function TeacherVocabularyPage() {
   const [editingItemForm, setEditingItemForm] = useState<ItemForm>(emptyItem);
   const [audience, setAudience] = useState<AudiencePayload>({ classes: [], students: [] });
   const [assignments, setAssignments] = useState<VocabularyAssignment[]>([]);
+  const [assignmentProgress, setAssignmentProgress] = useState<Record<string, AssignmentStudentProgress[]>>({});
+  const [expandedProgressAssignmentId, setExpandedProgressAssignmentId] = useState('');
+  const [expandedProgressStudentId, setExpandedProgressStudentId] = useState('');
+  const [loadingProgressId, setLoadingProgressId] = useState('');
   const [assignmentForm, setAssignmentForm] = useState<AssignmentForm>(emptyAssignment);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -240,6 +266,9 @@ export default function TeacherVocabularyPage() {
     try {
       const res = await teacherApi.getVocabularyAssignments(slug);
       setAssignments((res.data as VocabularyAssignment[]) ?? []);
+      setAssignmentProgress({});
+      setExpandedProgressAssignmentId('');
+      setExpandedProgressStudentId('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Khong tai duoc assignment');
     } finally {
@@ -247,6 +276,30 @@ export default function TeacherVocabularyPage() {
     }
   }
 
+  async function loadAssignmentProgress(assignmentId: string) {
+    if (!selectedSlug) return;
+    if (expandedProgressAssignmentId === assignmentId) {
+      setExpandedProgressAssignmentId('');
+      setExpandedProgressStudentId('');
+      return;
+    }
+    setExpandedProgressAssignmentId(assignmentId);
+    setExpandedProgressStudentId('');
+    if (assignmentProgress[assignmentId]) return;
+    setLoadingProgressId(assignmentId);
+    setError('');
+    try {
+      const res = await teacherApi.getVocabularyAssignmentProgress(selectedSlug, assignmentId);
+      setAssignmentProgress((current) => ({
+        ...current,
+        [assignmentId]: (res.data as AssignmentStudentProgress[]) ?? [],
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Khong tai duoc tien do assignment');
+    } finally {
+      setLoadingProgressId('');
+    }
+  }
   async function openDetail(slug: string) {
     setSelectedSlug(slug);
     setLoadingDetail(true);
@@ -668,22 +721,82 @@ export default function TeacherVocabularyPage() {
                 </div>
                 {loadingAssignments ? <div className="notice">Dang tai assignment...</div> : null}
                 <div className="list">
-                  {assignments.map((assignment) => (
-                    <article className="card list-item assignment-item" key={assignment.id}>
-                      <div>
-                        <div className="row" style={{ justifyContent: 'flex-start' }}>
-                          <h3>{assignment.title}</h3>
-                          <span className="badge">{assignment.targetType === 'CLASS' ? 'Class' : 'Student'}</span>
+                  {assignments.map((assignment) => {
+                    const progressRows = assignmentProgress[assignment.id] ?? [];
+                    const isProgressOpen = expandedProgressAssignmentId === assignment.id;
+                    return (
+                      <article className="card assignment-item vocabulary-progress-card" key={assignment.id}>
+                        <div className="row assignment-progress-head">
+                          <div>
+                            <div className="row" style={{ justifyContent: 'flex-start' }}>
+                              <h3>{assignment.title}</h3>
+                              <span className="badge">{assignment.targetType === 'CLASS' ? 'Class' : 'Student'}</span>
+                            </div>
+                            <p>{assignment.targetLabel}</p>
+                            <div className="meta">
+                              <span>Deadline: <strong>{formatDateTime(assignment.deadline)}</strong></span>
+                              <span>Daily target: <strong>{assignment.dailyTarget}</strong></span>
+                              <span>Mastery: <strong>{assignment.requiredMasteryPercent}%</strong></span>
+                            </div>
+                          </div>
+                          <button className="btn" disabled={loadingProgressId === assignment.id} onClick={() => loadAssignmentProgress(assignment.id)} type="button">
+                            {loadingProgressId === assignment.id ? 'Dang tai...' : isProgressOpen ? 'An tien do' : 'Xem tien do'}
+                          </button>
                         </div>
-                        <p>{assignment.targetLabel}</p>
-                        <div className="meta">
-                          <span>Deadline: <strong>{formatDateTime(assignment.deadline)}</strong></span>
-                          <span>Daily target: <strong>{assignment.dailyTarget}</strong></span>
-                          <span>Mastery: <strong>{assignment.requiredMasteryPercent}%</strong></span>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
+
+                        {isProgressOpen ? (
+                          <div className="assignment-progress-panel">
+                            {loadingProgressId === assignment.id ? <div className="notice">Dang tai tien do hoc sinh...</div> : null}
+                            {!loadingProgressId && progressRows.length === 0 ? <div className="notice">Chua co hoc sinh trong assignment nay.</div> : null}
+                            {progressRows.length ? (
+                              <div className="assignment-progress-table">
+                                <div className="assignment-progress-row assignment-progress-row-head">
+                                  <span>Hoc sinh</span>
+                                  <span>Learned</span>
+                                  <span>Mastered</span>
+                                  <span>Weak</span>
+                                  <span>Accuracy</span>
+                                  <span>Last studied</span>
+                                  <span>Completion</span>
+                                  <span></span>
+                                </div>
+                                {progressRows.map((row) => {
+                                  const detailsOpen = expandedProgressStudentId === row.studentId;
+                                  return (
+                                    <div className="assignment-progress-student" key={row.studentId}>
+                                      <div className="assignment-progress-row">
+                                        <span><strong>{row.studentName}</strong><small>{row.studentEmail}</small></span>
+                                        <span>{row.learnedWords}/{row.totalWords}</span>
+                                        <span>{row.masteredWords}</span>
+                                        <span>{row.weakWords}</span>
+                                        <span>{row.accuracy}%</span>
+                                        <span>{formatDateTime(row.lastStudiedAt)}</span>
+                                        <span>{row.completionPercent}%</span>
+                                        <button className="btn" onClick={() => setExpandedProgressStudentId(detailsOpen ? '' : row.studentId)} type="button">Chi tiet</button>
+                                      </div>
+                                      {detailsOpen ? (
+                                        <div className="weak-word-detail-list">
+                                          {(row.weakWordDetails ?? []).map((word) => (
+                                            <div className="weak-word-detail" key={word.id}>
+                                              <span><strong>{word.word}</strong>{word.meaningVi ? <small>{word.meaningVi}</small> : null}</span>
+                                              <span>Wrong <strong>{word.wrongCount}</strong></span>
+                                              <span>Confidence <strong>{word.confidence}</strong></span>
+                                              <span>Last <strong>{formatDateTime(word.lastReviewedAt)}</strong></span>
+                                            </div>
+                                          ))}
+                                          {(row.weakWordDetails ?? []).length === 0 ? <div className="notice">Khong co weak words.</div> : null}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
                   {!loadingAssignments && assignments.length === 0 ? <div className="notice">Chua co assignment nao cho bo tu nay.</div> : null}
                 </div>
               </>

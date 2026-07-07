@@ -39,6 +39,7 @@ export const teacherApi = {
     return request(`/teachers/vocabulary/${slug}/items${suffix}`);
   },
   getVocabularyAssignments: (slug: string) => request(`/teachers/vocabulary/${slug}/assignments`),
+  getVocabularyAssignmentProgress: (slug: string, assignmentId: string) => request(`/teachers/vocabulary/${slug}/assignments/${assignmentId}/progress`),
   createVocabularySet: (payload: Record<string, unknown>) =>
     request('/teachers/vocabulary', {
       method: 'POST',

@@ -123,6 +123,11 @@ public class TeacherController {
         return ApiResponse.ok(vocabularyService.teacherAssignments(slug));
     }
 
+    @GetMapping("/vocabulary/{slug}/assignments/{assignmentId}/progress")
+    public ApiResponse<?> vocabularyAssignmentProgress(@PathVariable String slug, @PathVariable String assignmentId) {
+        return ApiResponse.ok(vocabularyService.teacherAssignmentProgress(slug, assignmentId));
+    }
+
     @PostMapping("/vocabulary")
     public ApiResponse<?> createVocabularySet(@RequestBody Map<String, Object> body) {
         return ApiResponse.ok(vocabularyService.createSet(body));

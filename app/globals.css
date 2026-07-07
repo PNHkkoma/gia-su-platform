@@ -2688,6 +2688,98 @@ p,
 }
 
 
+
+.vocabulary-progress-card {
+  display: grid;
+  gap: 12px;
+}
+
+.assignment-progress-head {
+  align-items: flex-start;
+}
+
+.assignment-progress-panel {
+  display: grid;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e3eef6;
+}
+
+.assignment-progress-table {
+  display: grid;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.assignment-progress-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) repeat(6, minmax(86px, 0.75fr)) minmax(82px, auto);
+  gap: 8px;
+  align-items: center;
+  min-width: 920px;
+  padding: 10px 12px;
+  border: 1px solid #e3eef6;
+  border-radius: 14px;
+  background: #fbfdff;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.assignment-progress-row-head {
+  background: #f3f9fd;
+  color: var(--brand-dark);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.assignment-progress-row strong {
+  color: var(--ink);
+}
+
+.assignment-progress-row small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.assignment-progress-student {
+  display: grid;
+  gap: 8px;
+}
+
+.weak-word-detail-list {
+  display: grid;
+  gap: 8px;
+  padding: 8px 0 2px 18px;
+}
+
+.weak-word-detail {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) repeat(3, minmax(110px, auto));
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #f4d5dc;
+  border-radius: 14px;
+  background: #fff7f8;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.weak-word-detail strong {
+  color: var(--ink);
+}
+
+.weak-word-detail small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+}
 .choice-stage {
   animation: studySlideIn 0.24s ease both;
 }

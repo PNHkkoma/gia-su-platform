@@ -172,7 +172,51 @@ public class VocabularyService {
             """, (rs, i) -> assignmentRow(rs), setId);
     }
 
-    public List<Map<String, Object>> studentAssignments(String studentId, String studentEmail) {
+
+    public List<Map<String, Object>> teacherAssignmentProgress(String slug, String assignmentId) {
+        String setId = setId(slug);
+        if (setId == null) return List.of();
+        List<Map<String, Object>> assignmentRows = jdbc.query("""
+            select "id", "classId", "studentId"
+            from "VocabularyAssignment"
+            where "id" = ? and "vocabularySetId" = ?
+            """, (rs, i) -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", rs.getString("id"));
+            row.put("classId", rs.getString("classId"));
+            row.put("studentId", rs.getString("studentId"));
+            return row;
+        }, assignmentId, setId);
+        if (assignmentRows.isEmpty()) return List.of();
+
+        Map<String, Object> assignment = assignmentRows.get(0);
+        String classId = str(assignment.get("classId"));
+        String studentId = str(assignment.get("studentId"));
+        List<Map<String, Object>> students;
+        if (classId != null && !classId.isBlank()) {
+            students = jdbc.query("""
+                select u."id", u."fullName", u."email"
+                from "ClassStudent" cs
+                join "User" u on u."id" = cs."studentId"
+                where cs."classId" = ?
+                order by u."fullName" asc
+                """, (rs, i) -> studentIdentityRow(rs), classId);
+        } else if (studentId != null && !studentId.isBlank()) {
+            students = jdbc.query("""
+                select "id", "fullName", "email"
+                from "User"
+                where "id" = ?
+                """, (rs, i) -> studentIdentityRow(rs), studentId);
+        } else {
+            students = List.of();
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> student : students) {
+            result.add(studentProgressRow(setId, String.valueOf(student.get("id")), student));
+        }
+        return result;
+    }    public List<Map<String, Object>> studentAssignments(String studentId, String studentEmail) {
         String resolvedStudentId = studentId(studentId, studentEmail);
         return jdbc.query("""
             select va."id", va."title", va."deadline", va."dailyTarget", va."requiredMasteryPercent", va."createdAt",
@@ -449,7 +493,78 @@ public class VocabularyService {
         }, classId);
     }
 
-    private Map<String, Object> setRow(ResultSet rs) throws SQLException {
+
+    private Map<String, Object> studentIdentityRow(ResultSet rs) throws SQLException {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("id", rs.getString("id"));
+        row.put("fullName", rs.getString("fullName"));
+        row.put("email", rs.getString("email"));
+        return row;
+    }
+
+    private Map<String, Object> studentProgressRow(String setId, String studentId, Map<String, Object> student) {
+        Map<String, Object> stats = jdbc.queryForObject("""
+            select count(vi."id") as "totalWords",
+                   coalesce(sum(case when svp."lastReviewedAt" is not null then 1 else 0 end), 0) as "learnedWords",
+                   coalesce(sum(case when coalesce(svp."status", 'NEW') = 'MASTERED' then 1 else 0 end), 0) as "masteredWords",
+                   coalesce(sum(case when coalesce(svp."wrongCount", 0) > 0 and coalesce(svp."status", 'NEW') <> 'MASTERED' then 1 else 0 end), 0) as "weakWords",
+                   coalesce(sum(coalesce(svp."correctCount", 0)), 0) as "correctCount",
+                   coalesce(sum(coalesce(svp."wrongCount", 0)), 0) as "wrongCount",
+                   max(svp."lastReviewedAt") as "lastStudiedAt"
+            from "VocabularyItem" vi
+            left join "StudentVocabularyProgress" svp on svp."vocabularyItemId" = vi."id" and svp."studentId" = ?
+            where vi."vocabularySetId" = ?
+            """, (rs, i) -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            int totalWords = rs.getInt("totalWords");
+            int learnedWords = rs.getInt("learnedWords");
+            int masteredWords = rs.getInt("masteredWords");
+            int weakWords = rs.getInt("weakWords");
+            int correctCount = rs.getInt("correctCount");
+            int wrongCount = rs.getInt("wrongCount");
+            int attempts = correctCount + wrongCount;
+            row.put("totalWords", totalWords);
+            row.put("learnedWords", learnedWords);
+            row.put("masteredWords", masteredWords);
+            row.put("weakWords", weakWords);
+            row.put("accuracy", attempts == 0 ? 0 : Math.round((correctCount * 100.0f) / attempts));
+            row.put("completionPercent", totalWords == 0 ? 0 : Math.round((masteredWords * 100.0f) / totalWords));
+            row.put("lastStudiedAt", iso(rs.getTimestamp("lastStudiedAt")));
+            return row;
+        }, studentId, setId);
+
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("studentId", student.get("id"));
+        row.put("studentName", student.get("fullName"));
+        row.put("studentEmail", student.get("email"));
+        row.putAll(stats);
+        row.put("weakWordDetails", weakWordDetails(setId, studentId));
+        return row;
+    }
+
+    private List<Map<String, Object>> weakWordDetails(String setId, String studentId) {
+        return jdbc.query("""
+            select vi."id", vi."word", vi."term", vi."meaningVi", vi."meaning",
+                   coalesce(svp."wrongCount", 0) as "wrongCount",
+                   coalesce(svp."confidence", svp."familiarity", 0) as "confidence",
+                   svp."lastReviewedAt"
+            from "VocabularyItem" vi
+            join "StudentVocabularyProgress" svp on svp."vocabularyItemId" = vi."id" and svp."studentId" = ?
+            where vi."vocabularySetId" = ?
+              and coalesce(svp."status", 'NEW') <> 'MASTERED'
+              and (coalesce(svp."wrongCount", 0) > 0 or coalesce(svp."confidence", svp."familiarity", 0) < 0)
+            order by coalesce(svp."wrongCount", 0) desc, svp."lastReviewedAt" desc nulls last
+            """, (rs, i) -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", rs.getString("id"));
+            row.put("word", text(rs.getString("word"), rs.getString("term")));
+            row.put("meaningVi", text(rs.getString("meaningVi"), rs.getString("meaning")));
+            row.put("wrongCount", rs.getInt("wrongCount"));
+            row.put("confidence", rs.getInt("confidence"));
+            row.put("lastReviewedAt", iso(rs.getTimestamp("lastReviewedAt")));
+            return row;
+        }, studentId, setId);
+    }    private Map<String, Object> setRow(ResultSet rs) throws SQLException {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("id", rs.getString("id"));
         row.put("teacherId", rs.getString("teacherId"));
