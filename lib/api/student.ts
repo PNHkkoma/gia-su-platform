@@ -12,6 +12,12 @@ export const studentApi = {
   getHistory: (studentEmail?: string) => request(withStudentQuery('/students/history', studentEmail)),
   getProfile: (studentEmail?: string) => request(withStudentQuery('/students/profile', studentEmail)),
   getVocabulary: (studentEmail?: string) => request(withStudentQuery('/students/vocabulary', studentEmail)),
+  getVocabularyAssignment: (assignmentId: string, studentEmail?: string) => request(withStudentQuery(`/students/vocabulary/${assignmentId}`, studentEmail)),
+  reviewVocabularyItem: (assignmentId: string, itemId: string, payload: Record<string, unknown>, studentEmail?: string) =>
+    request(withStudentQuery(`/students/vocabulary/${assignmentId}/items/${itemId}/review`, studentEmail), {
+      method: 'POST',
+      body: JSON.stringify(studentEmail ? { ...payload, studentEmail } : payload),
+    }),
   startTest: (testId: string, studentEmail?: string) => request(withStudentQuery(`/students/tests/${testId}/start`, studentEmail), { method: 'POST' }),
   submitTest: (testId: string, payload: Record<string, unknown>, studentEmail?: string) =>
     request(withStudentQuery(`/students/tests/${testId}/submit`, studentEmail), {

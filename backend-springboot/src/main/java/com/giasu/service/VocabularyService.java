@@ -193,6 +193,87 @@ public class VocabularyService {
             """, (rs, i) -> studentAssignmentRow(rs), resolvedStudentId, resolvedStudentId);
     }
 
+    public Map<String, Object> studentAssignmentDetail(String assignmentId, String studentId, String studentEmail) {
+        String resolvedStudentId = studentId(studentId, studentEmail);
+        List<Map<String, Object>> rows = jdbc.query("""
+            select va."id", va."title", va."deadline", va."dailyTarget", va."requiredMasteryPercent", va."createdAt",
+                   vs."id" as "setId", vs."title" as "setTitle", vs."slug" as "setSlug", vs."description" as "setDescription",
+                   vs."subject" as "subject", vs."level" as "level", vs."status" as "setStatus",
+                   teacher."fullName" as "teacherName",
+                   c."id" as "classId", c."name" as "className",
+                   count(distinct vi."id") as "itemCount"
+            from "VocabularyAssignment" va
+            join "VocabularySet" vs on vs."id" = va."vocabularySetId"
+            join "User" teacher on teacher."id" = vs."teacherId"
+            left join "Class" c on c."id" = va."classId"
+            left join "VocabularyItem" vi on vi."vocabularySetId" = vs."id"
+            left join "ClassStudent" cs on cs."classId" = va."classId" and cs."studentId" = ?
+            where va."id" = ? and (va."studentId" = ? or cs."id" is not null)
+            group by va."id", vs."id", teacher."fullName", c."id"
+            """, (rs, i) -> studentAssignmentRow(rs), resolvedStudentId, assignmentId, resolvedStudentId);
+        if (rows.isEmpty()) return null;
+        Map<String, Object> assignment = rows.get(0);
+        assignment.put("items", flashcardItems(String.valueOf(assignment.get("setId")), resolvedStudentId));
+        return assignment;
+    }
+
+    @Transactional
+    public Map<String, Object> reviewFlashcard(String assignmentId, String itemId, Map<String, Object> body) {
+        String resolvedStudentId = studentId(str(body.get("studentId")), str(body.get("studentEmail")));
+        if (!studentCanReviewItem(assignmentId, itemId, resolvedStudentId)) return null;
+
+        Map<String, Object> current = progressForItem(resolvedStudentId, itemId);
+        int confidence = intValue(current.get("confidence"), 0);
+        int correctCount = intValue(current.get("correctCount"), 0);
+        int wrongCount = intValue(current.get("wrongCount"), 0);
+        String currentStatus = text(str(current.get("status")), "NEW");
+        String action = text(str(body.get("rating")), str(body.get("action"))).trim().toUpperCase();
+
+        Instant now = Instant.now();
+        Instant nextReviewAt;
+        switch (action) {
+            case "HARD" -> {
+                wrongCount += 1;
+                confidence -= 1;
+                nextReviewAt = now.plusSeconds(10 * 60L);
+            }
+            case "MEDIUM", "GOOD" -> nextReviewAt = now.plusSeconds(24 * 60 * 60L);
+            case "EASY" -> {
+                correctCount += 1;
+                confidence += 1;
+                nextReviewAt = now.plusSeconds(3 * 24 * 60 * 60L);
+            }
+            case "MASTERED" -> {
+                correctCount += 1;
+                confidence += 2;
+                nextReviewAt = now.plusSeconds(7 * 24 * 60 * 60L);
+            }
+            case "MC_CORRECT" -> {
+                correctCount += 1;
+                confidence += 1;
+                nextReviewAt = now.plusSeconds(24 * 60 * 60L);
+            }
+            case "MC_WRONG" -> {
+                wrongCount += 1;
+                confidence -= 1;
+                nextReviewAt = now.plusSeconds(10 * 60L);
+            }
+            default -> throw new IllegalArgumentException("Unsupported vocabulary review action");
+        }
+        String status = "MASTERED".equals(action) ? "MASTERED" : "MASTERED".equals(currentStatus) ? "MASTERED" : "LEARNING";
+
+        upsertProgress(
+            resolvedStudentId,
+            itemId,
+            status,
+            confidence,
+            correctCount,
+            wrongCount,
+            Timestamp.from(now),
+            Timestamp.from(nextReviewAt)
+        );
+        return progressForItem(resolvedStudentId, itemId);
+    }
     @Transactional
     public Map<String, Object> createSet(Map<String, Object> body) {
         String id = UUID.randomUUID().toString();
@@ -427,6 +508,96 @@ public class VocabularyService {
         return row;
     }
 
+    private List<Map<String, Object>> flashcardItems(String setId, String studentId) {
+        return jdbc.query("""
+            select vi."id", vi."word", vi."term", vi."phonetic", vi."partOfSpeech", vi."meaningVi", vi."meaning", vi."meaningEn",
+                   vi."exampleSentence", vi."example", vi."exampleMeaningVi", vi."tags", vi."orderIndex", vi."createdAt", vi."updatedAt",
+                   coalesce(svp."status", 'NEW') as "progressStatus",
+                   coalesce(svp."confidence", svp."familiarity", 0) as "confidence",
+                   coalesce(svp."correctCount", 0) as "correctCount",
+                   coalesce(svp."wrongCount", 0) as "wrongCount",
+                   svp."lastReviewedAt", svp."nextReviewAt"
+            from "VocabularyItem" vi
+            left join "StudentVocabularyProgress" svp on svp."vocabularyItemId" = vi."id" and svp."studentId" = ?
+            where vi."vocabularySetId" = ?
+            order by vi."orderIndex" asc, vi."createdAt" asc
+            """, (rs, i) -> flashcardItemRow(rs), studentId, setId);
+    }
+
+    private Map<String, Object> flashcardItemRow(ResultSet rs) throws SQLException {
+        Map<String, Object> row = itemRow(rs);
+        Map<String, Object> progress = new LinkedHashMap<>();
+        progress.put("status", rs.getString("progressStatus"));
+        progress.put("confidence", rs.getInt("confidence"));
+        progress.put("correctCount", rs.getInt("correctCount"));
+        progress.put("wrongCount", rs.getInt("wrongCount"));
+        progress.put("lastReviewedAt", iso(rs.getTimestamp("lastReviewedAt")));
+        progress.put("nextReviewAt", iso(rs.getTimestamp("nextReviewAt")));
+        row.put("progress", progress);
+        return row;
+    }
+
+    private boolean studentCanReviewItem(String assignmentId, String itemId, String studentId) {
+        Integer count = jdbc.queryForObject("""
+            select count(*)
+            from "VocabularyAssignment" va
+            join "VocabularyItem" vi on vi."vocabularySetId" = va."vocabularySetId" and vi."id" = ?
+            left join "ClassStudent" cs on cs."classId" = va."classId" and cs."studentId" = ?
+            where va."id" = ? and (va."studentId" = ? or cs."id" is not null)
+            """, Integer.class, itemId, studentId, assignmentId, studentId);
+        return count != null && count > 0;
+    }
+
+    private Map<String, Object> progressForItem(String studentId, String itemId) {
+        List<Map<String, Object>> rows = jdbc.query("""
+            select "id", "studentId", "vocabularyItemId", coalesce("status", 'NEW') as "status",
+                   coalesce("confidence", "familiarity", 0) as "confidence", coalesce("correctCount", 0) as "correctCount",
+                   coalesce("wrongCount", 0) as "wrongCount", "lastReviewedAt", "nextReviewAt", "createdAt", "updatedAt"
+            from "StudentVocabularyProgress"
+            where "studentId" = ? and "vocabularyItemId" = ?
+            """, (rs, i) -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", rs.getString("id"));
+            row.put("studentId", rs.getString("studentId"));
+            row.put("vocabularyItemId", rs.getString("vocabularyItemId"));
+            row.put("status", rs.getString("status"));
+            row.put("confidence", rs.getInt("confidence"));
+            row.put("correctCount", rs.getInt("correctCount"));
+            row.put("wrongCount", rs.getInt("wrongCount"));
+            row.put("lastReviewedAt", iso(rs.getTimestamp("lastReviewedAt")));
+            row.put("nextReviewAt", iso(rs.getTimestamp("nextReviewAt")));
+            row.put("createdAt", iso(rs.getTimestamp("createdAt")));
+            row.put("updatedAt", iso(rs.getTimestamp("updatedAt")));
+            return row;
+        }, studentId, itemId);
+        if (!rows.isEmpty()) return rows.get(0);
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("studentId", studentId);
+        row.put("vocabularyItemId", itemId);
+        row.put("status", "NEW");
+        row.put("confidence", 0);
+        row.put("correctCount", 0);
+        row.put("wrongCount", 0);
+        row.put("lastReviewedAt", null);
+        row.put("nextReviewAt", null);
+        return row;
+    }
+
+    private void upsertProgress(String studentId, String itemId, String status, int confidence, int correctCount, int wrongCount, Timestamp lastReviewedAt, Timestamp nextReviewAt) {
+        jdbc.update("""
+            insert into "StudentVocabularyProgress" ("id", "studentId", "vocabularyItemId", "status", "confidence", "familiarity", "correctCount", "wrongCount", "lastReviewedAt", "nextReviewAt", "createdAt", "updatedAt")
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, current_timestamp)
+            on conflict ("studentId", "vocabularyItemId") do update set
+                "status" = excluded."status",
+                "confidence" = excluded."confidence",
+                "familiarity" = excluded."familiarity",
+                "correctCount" = excluded."correctCount",
+                "wrongCount" = excluded."wrongCount",
+                "lastReviewedAt" = excluded."lastReviewedAt",
+                "nextReviewAt" = excluded."nextReviewAt",
+                "updatedAt" = current_timestamp
+            """, UUID.randomUUID().toString(), studentId, itemId, status, confidence, confidence, correctCount, wrongCount, lastReviewedAt, nextReviewAt);
+    }
     private Map<String, Object> item(String id) {
         return jdbc.queryForObject("""
             select "id", "word", "term", "phonetic", "partOfSpeech", "meaningVi", "meaning", "meaningEn",
@@ -561,6 +732,14 @@ public class VocabularyService {
         }
     }
 
+    private int intValue(Object value, int fallback) {
+        if (value instanceof Number number) return number.intValue();
+        try {
+            return value == null ? fallback : Integer.parseInt(String.valueOf(value));
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
+    }
     private int boundedInt(Object value, int fallback, int min, int max) {
         int parsed = fallback;
         if (value instanceof Number number) {
@@ -591,4 +770,3 @@ public class VocabularyService {
         return timestamp == null ? null : timestamp.toInstant().toString();
     }
 }
-

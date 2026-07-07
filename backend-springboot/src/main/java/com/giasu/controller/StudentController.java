@@ -59,6 +59,30 @@ public class StudentController {
         return ApiResponse.ok(testService.history(studentId, studentEmail));
     }
 
+    @GetMapping("/vocabulary/{assignmentId}")
+    public ApiResponse<?> vocabularyAssignment(
+        @PathVariable String assignmentId,
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail
+    ) {
+        Map<String, Object> assignment = vocabularyService.studentAssignmentDetail(assignmentId, studentId, studentEmail);
+        return assignment == null ? ApiResponse.fail("NOT_FOUND", "Vocabulary assignment not found") : ApiResponse.ok(assignment);
+    }
+
+    @PostMapping("/vocabulary/{assignmentId}/items/{itemId}/review")
+    public ApiResponse<?> reviewVocabularyItem(
+        @PathVariable String assignmentId,
+        @PathVariable String itemId,
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail,
+        @RequestBody Map<String, Object> body
+    ) {
+        Map<String, Object> payload = new java.util.LinkedHashMap<>(body);
+        if (studentId != null) payload.put("studentId", studentId);
+        if (studentEmail != null) payload.put("studentEmail", studentEmail);
+        Map<String, Object> progress = vocabularyService.reviewFlashcard(assignmentId, itemId, payload);
+        return progress == null ? ApiResponse.fail("NOT_FOUND", "Vocabulary item not found") : ApiResponse.ok(progress);
+    }
     @GetMapping("/profile")
     public ApiResponse<?> profile(@RequestParam(required = false) String studentEmail) {
         return ApiResponse.ok(testService.profile(studentEmail));

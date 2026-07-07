@@ -248,6 +248,8 @@ model StudentVocabularyProgress {
   studentId        String
   vocabularyItem   VocabularyItem @relation(fields: [vocabularyItemId], references: [id])
   vocabularyItemId String
+  status           String         @default("LEARNING")
+  confidence       Int            @default(0)
   familiarity      Int            @default(0)
   correctCount     Int            @default(0)
   wrongCount       Int            @default(0)
