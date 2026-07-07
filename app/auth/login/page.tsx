@@ -97,6 +97,7 @@ export default function LoginPage() {
           <div className="login-card-head">
             <p className="login-kicker">Đăng nhập</p>
             <h2>Chọn vai trò</h2>
+            <Link className="btn soft login-landing-link" href="/">Xem landing page</Link>
           </div>
 
           <div className="role-switcher" aria-label="Chọn tài khoản mẫu">
