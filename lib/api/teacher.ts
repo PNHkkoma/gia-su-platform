@@ -27,6 +27,39 @@ export const teacherApi = {
       method: 'DELETE',
     }),
 
+  getFoundationCourses: () => request('/teachers/foundation-courses'),
+  getFoundationCourse: (slug: string) => request('/teachers/foundation-courses/' + slug),
+  createFoundationCourse: (payload: Record<string, unknown>) =>
+    request('/teachers/foundation-courses', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateFoundationCourse: (slug: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-courses/${slug}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  createFoundationUnit: (slug: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-courses/${slug}/units`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateFoundationUnit: (unitId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-units/${unitId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  createFoundationLesson: (unitId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-units/${unitId}/lessons`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateFoundationLesson: (lessonId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-lessons/${lessonId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
   getVocabularySets: () => request('/teachers/vocabulary'),
   getVocabularyAudience: () => request('/teachers/vocabulary/audience'),
   getVocabularySet: (slug: string) => request('/teachers/vocabulary/' + slug),

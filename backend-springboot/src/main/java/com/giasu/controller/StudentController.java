@@ -1,6 +1,7 @@
 package com.giasu.controller;
 
 import com.giasu.common.ApiResponse;
+import com.giasu.service.FoundationCourseService;
 import com.giasu.service.TestService;
 import com.giasu.service.VocabularyService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,12 +19,50 @@ import java.util.Map;
 public class StudentController {
     private final TestService testService;
     private final VocabularyService vocabularyService;
+    private final FoundationCourseService foundationCourseService;
 
-    public StudentController(TestService testService, VocabularyService vocabularyService) {
+    public StudentController(TestService testService, VocabularyService vocabularyService, FoundationCourseService foundationCourseService) {
         this.testService = testService;
         this.vocabularyService = vocabularyService;
+        this.foundationCourseService = foundationCourseService;
+    }
+    @GetMapping("/foundation-courses")
+    public ApiResponse<?> foundationCourses(
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail
+    ) {
+        return ApiResponse.ok(foundationCourseService.studentCourses(studentId, studentEmail));
     }
 
+    @GetMapping("/foundation-courses/{slug}")
+    public ApiResponse<?> foundationCourse(
+        @PathVariable String slug,
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail
+    ) {
+        Map<String, Object> course = foundationCourseService.studentCourse(slug, studentId, studentEmail);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation course not found") : ApiResponse.ok(course);
+    }
+
+    @PostMapping("/foundation-lessons/{lessonId}/start")
+    public ApiResponse<?> startFoundationLesson(
+        @PathVariable String lessonId,
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail
+    ) {
+        Map<String, Object> progress = foundationCourseService.startLesson(lessonId, studentId, studentEmail);
+        return progress == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson not found") : ApiResponse.ok(progress);
+    }
+
+    @PostMapping("/foundation-lessons/{lessonId}/complete")
+    public ApiResponse<?> completeFoundationLesson(
+        @PathVariable String lessonId,
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail
+    ) {
+        Map<String, Object> progress = foundationCourseService.completeLesson(lessonId, studentId, studentEmail);
+        return progress == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson not found") : ApiResponse.ok(progress);
+    }
     @GetMapping("/tests")
     public ApiResponse<?> tests() {
         return ApiResponse.ok(testService.studentTests());

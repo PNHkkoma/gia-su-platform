@@ -11,5 +11,6 @@ D:\app-eng-2\backend-springboot\src\main\java\com\giasu\dto\AuthResponse.java
 D:\app-eng-2\backend-springboot\src\main\java\com\giasu\dto\RegisterRequest.java
 D:\app-eng-2\backend-springboot\src\main\java\com\giasu\GiaSuApplication.java
 D:\app-eng-2\backend-springboot\src\main\java\com\giasu\service\AuthService.java
+D:\app-eng-2\backend-springboot\src\main\java\com\giasu\service\FoundationCourseService.java
 D:\app-eng-2\backend-springboot\src\main\java\com\giasu\service\TestService.java
 D:\app-eng-2\backend-springboot\src\main\java\com\giasu\service\VocabularyService.java

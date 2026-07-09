@@ -1,6 +1,7 @@
 package com.giasu.controller;
 
 import com.giasu.common.ApiResponse;
+import com.giasu.service.FoundationCourseService;
 import com.giasu.service.TestService;
 import com.giasu.service.VocabularyService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,10 +22,12 @@ import java.util.Map;
 public class TeacherController {
     private final TestService testService;
     private final VocabularyService vocabularyService;
+    private final FoundationCourseService foundationCourseService;
 
-    public TeacherController(TestService testService, VocabularyService vocabularyService) {
+    public TeacherController(TestService testService, VocabularyService vocabularyService, FoundationCourseService foundationCourseService) {
         this.testService = testService;
         this.vocabularyService = vocabularyService;
+        this.foundationCourseService = foundationCourseService;
     }
 
     @GetMapping("/dashboard")
@@ -163,7 +166,55 @@ public class TeacherController {
             ? ApiResponse.ok(Map.of("deleted", true))
             : ApiResponse.fail("NOT_FOUND", "Vocabulary item not found");
     }
+    @GetMapping("/foundation-courses")
+    public ApiResponse<?> foundationCourses(
+        @RequestParam(required = false) String teacherId,
+        @RequestParam(required = false) String teacherEmail,
+        @RequestParam(defaultValue = "false") boolean admin
+    ) {
+        return ApiResponse.ok(foundationCourseService.teacherCourses(teacherId, teacherEmail, admin));
+    }
 
+    @GetMapping("/foundation-courses/{slug}")
+    public ApiResponse<?> foundationCourse(@PathVariable String slug) {
+        Map<String, Object> course = foundationCourseService.teacherCourse(slug);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation course not found") : ApiResponse.ok(course);
+    }
+
+    @PostMapping("/foundation-courses")
+    public ApiResponse<?> createFoundationCourse(@RequestBody Map<String, Object> body) {
+        return ApiResponse.ok(foundationCourseService.createCourse(body));
+    }
+
+    @PatchMapping("/foundation-courses/{slug}")
+    public ApiResponse<?> updateFoundationCourse(@PathVariable String slug, @RequestBody Map<String, Object> body) {
+        Map<String, Object> course = foundationCourseService.updateCourse(slug, body);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation course not found") : ApiResponse.ok(course);
+    }
+
+    @PostMapping("/foundation-courses/{slug}/units")
+    public ApiResponse<?> createFoundationUnit(@PathVariable String slug, @RequestBody Map<String, Object> body) {
+        Map<String, Object> course = foundationCourseService.createUnit(slug, body);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation course not found") : ApiResponse.ok(course);
+    }
+
+    @PatchMapping("/foundation-units/{unitId}")
+    public ApiResponse<?> updateFoundationUnit(@PathVariable String unitId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> course = foundationCourseService.updateUnit(unitId, body);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation unit not found") : ApiResponse.ok(course);
+    }
+
+    @PostMapping("/foundation-units/{unitId}/lessons")
+    public ApiResponse<?> createFoundationLesson(@PathVariable String unitId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> course = foundationCourseService.createLesson(unitId, body);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation unit not found") : ApiResponse.ok(course);
+    }
+
+    @PatchMapping("/foundation-lessons/{lessonId}")
+    public ApiResponse<?> updateFoundationLesson(@PathVariable String lessonId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> course = foundationCourseService.updateLesson(lessonId, body);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson not found") : ApiResponse.ok(course);
+    }
     @GetMapping("/questions")
     public ApiResponse<?> questions(
         @RequestParam(required = false) String teacherId,

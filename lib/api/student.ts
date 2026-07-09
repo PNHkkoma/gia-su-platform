@@ -11,6 +11,13 @@ export const studentApi = {
   getTest: (testId: string, studentEmail?: string) => request(withStudentQuery(`/students/tests/${testId}`, studentEmail)),
   getHistory: (studentEmail?: string) => request(withStudentQuery('/students/history', studentEmail)),
   getProfile: (studentEmail?: string) => request(withStudentQuery('/students/profile', studentEmail)),
+  getFoundationCourses: (studentEmail?: string) => request(withStudentQuery('/students/foundation-courses', studentEmail)),
+  getFoundationCourse: (slug: string, studentEmail?: string) => request(withStudentQuery(`/students/foundation-courses/${slug}`, studentEmail)),
+  startFoundationLesson: (lessonId: string, studentEmail?: string) =>
+    request(withStudentQuery(`/students/foundation-lessons/${lessonId}/start`, studentEmail), { method: 'POST' }),
+  completeFoundationLesson: (lessonId: string, studentEmail?: string) =>
+    request(withStudentQuery(`/students/foundation-lessons/${lessonId}/complete`, studentEmail), { method: 'POST' }),
+
   getVocabulary: (studentEmail?: string) => request(withStudentQuery('/students/vocabulary', studentEmail)),
   getVocabularyAssignment: (assignmentId: string, studentEmail?: string) => request(withStudentQuery(`/students/vocabulary/${assignmentId}`, studentEmail)),
   reviewVocabularyItem: (assignmentId: string, itemId: string, payload: Record<string, unknown>, studentEmail?: string) =>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -28,7 +28,7 @@ export default function StudentDashboardPage() {
                 <div className="eyebrow">Danh sách nhiệm vụ</div>
                 <h1>Bài kiểm tra hiện tại</h1>
               </div>
-              <Link className="btn" href="/student/tests">Xem tất cả</Link>
+              <div className="actions"><Link className="btn" href="/student/foundation">Foundation</Link><Link className="btn" href="/student/tests">Xem tất cả</Link></div>
             </div>
             {error ? <div className="error">{error}</div> : null}
             <div className="list">

@@ -71,6 +71,8 @@ model User {
   vocabularyAssignments VocabularyAssignment[]      @relation("StudentVocabularyAssignments")
   vocabularyProgress    StudentVocabularyProgress[] @relation("StudentVocabularyProgress")
   notifications         Notification[]
+  foundationCourses     FoundationCourse[]          @relation("TeacherFoundationCourses")
+  foundationProgress    FoundationLessonProgress[]  @relation("StudentFoundationProgress")
 }
 
 model TeacherProfile {
@@ -294,6 +296,65 @@ model AttemptAnswer {
   updatedAt         DateTime @updatedAt
 }
 
+model FoundationCourse {
+  id               String             @id @default(uuid())
+  teacher          User               @relation("TeacherFoundationCourses", fields: [teacherId], references: [id])
+  teacherId        String
+  title            String
+  description      String?
+  slug             String             @unique
+  status           String             @default("DRAFT")
+  level            String?
+  estimatedMinutes Int                @default(0)
+  completionRule   String             @default("COMPLETE_ALL_LESSONS")
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  units            FoundationUnit[]
+  lessonProgress   FoundationLessonProgress[]
+}
+
+model FoundationUnit {
+  id          String             @id @default(uuid())
+  course      FoundationCourse   @relation(fields: [courseId], references: [id])
+  courseId    String
+  title       String
+  description String?
+  orderIndex  Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  lessons     FoundationLesson[]
+}
+
+model FoundationLesson {
+  id                  String                     @id @default(uuid())
+  unit                FoundationUnit             @relation(fields: [unitId], references: [id])
+  unitId              String
+  title               String
+  content             String?
+  status              String                     @default("DRAFT")
+  orderIndex          Int                        @default(0)
+  estimatedMinutes    Int                        @default(10)
+  completionCondition String                     @default("MARK_AS_DONE")
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  progress            FoundationLessonProgress[]
+}
+
+model FoundationLessonProgress {
+  id          String           @id @default(uuid())
+  student     User             @relation("StudentFoundationProgress", fields: [studentId], references: [id])
+  studentId   String
+  course      FoundationCourse @relation(fields: [courseId], references: [id])
+  courseId    String
+  lesson      FoundationLesson @relation(fields: [lessonId], references: [id])
+  lessonId    String
+  status      String           @default("IN_PROGRESS")
+  startedAt   DateTime         @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([studentId, lessonId])
+}
 model Notification {
   id        String    @id @default(uuid())
   user      User      @relation(fields: [userId], references: [id])
