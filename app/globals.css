@@ -4576,3 +4576,218 @@ p,
     font-size: 12px;
   }
 }
+/* App-wide landing polish: light, scoped, no component rewrites */
+:root {
+  --shadow-soft: 0 14px 32px rgba(23, 43, 58, 0.06);
+  --shadow-lift: 0 20px 44px rgba(23, 43, 58, 0.10);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 8% 6%, rgba(255, 122, 61, 0.07), transparent 25%),
+    radial-gradient(circle at 92% 7%, rgba(74, 174, 232, 0.13), transparent 29%),
+    linear-gradient(180deg, #ffffff 0%, #f7fcff 48%, #ffffff 100%);
+}
+
+.topbar,
+.study-exam-topbar {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom-color: rgba(220, 235, 244, 0.9);
+  box-shadow: 0 12px 30px rgba(23, 43, 58, 0.055);
+  backdrop-filter: blur(18px);
+}
+
+.nav { gap: 9px; }
+.nav .btn { min-height: 40px; padding-inline: 15px; }
+.nav-active,
+.nav .btn.nav-active:hover {
+  border-color: rgba(74, 174, 232, 0.42);
+  background: linear-gradient(135deg, #eef8ff, #fff7f2);
+  color: var(--brand-dark);
+  box-shadow: inset 0 0 0 1px rgba(74, 174, 232, 0.10), 0 10px 22px rgba(23, 43, 58, 0.055);
+}
+
+.page-head,
+.hero-card,
+.card,
+.panel,
+.quick-box,
+.role-option,
+.test-list-button,
+.study-question-panel,
+.study-sidebar,
+.flashcard-face,
+.multiple-choice-card,
+.result-summary,
+.search-field {
+  border-color: rgba(220, 235, 244, 0.94);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(250, 254, 255, 0.92));
+  box-shadow: var(--shadow-soft);
+}
+
+.page-head,
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 16%, rgba(255, 122, 61, 0.10), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 249, 255, 0.92));
+}
+
+.card:hover,
+.list-item:hover,
+.test-card:hover,
+.question-card:hover,
+.test-list-button:hover,
+.student-vocabulary-card:hover {
+  border-color: rgba(74, 174, 232, 0.35);
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-2px);
+}
+
+.btn,
+.login-submit,
+.answer-option,
+.choice-option,
+.rating-card,
+.question-chip,
+.audio-button,
+.test-list-button {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.btn {
+  border-color: rgba(191, 228, 247, 0.92);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 18px rgba(23, 43, 58, 0.035);
+}
+
+.btn:hover {
+  border-color: rgba(74, 174, 232, 0.45);
+  background: #f4fbff;
+  color: var(--brand-dark);
+  box-shadow: 0 12px 24px rgba(23, 43, 58, 0.08);
+}
+
+.btn.primary,
+.login-submit,
+.study-submit,
+.rating-card.mastered,
+.question-chip.active,
+.question-chip.done,
+.study-question-grid button.active,
+.study-question-grid button.done {
+  background: linear-gradient(135deg, #55b8ed, #2588c7);
+  border-color: #49aee4;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(39, 135, 196, 0.20);
+}
+
+.badge,
+.role-label,
+.study-header-stats span,
+.study-reward-row span,
+.part-of-speech,
+.study-question-number,
+.study-part {
+  border: 1px solid rgba(191, 228, 247, 0.78);
+  background: linear-gradient(135deg, #eef8ff, #fff8f3);
+  color: var(--brand-dark);
+}
+
+.input,
+.textarea,
+.select,
+.login-input {
+  border-color: rgba(220, 235, 244, 0.98);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus,
+.login-input:focus,
+.search-field:focus-within {
+  border-color: rgba(74, 174, 232, 0.72);
+  box-shadow: 0 0 0 4px rgba(74, 174, 232, 0.11), 0 12px 24px rgba(23, 43, 58, 0.055);
+}
+
+.study-exam-page {
+  background:
+    radial-gradient(circle at 8% 5%, rgba(255, 122, 61, 0.07), transparent 26%),
+    radial-gradient(circle at 94% 12%, rgba(74, 174, 232, 0.14), transparent 28%),
+    #ffffff;
+}
+
+.study-exam-title,
+.study-exam-shell,
+.vocabulary-study-container {
+  width: min(1180px, calc(100vw - 32px));
+}
+
+.flashcard-face,
+.multiple-choice-card,
+.study-progress-strip,
+.flashcard-complete {
+  background:
+    radial-gradient(circle at 86% 14%, rgba(74, 174, 232, 0.10), transparent 28%),
+    rgba(255, 255, 255, 0.92);
+}
+
+.progress-track span,
+.study-progress-dots i.active {
+  background: linear-gradient(90deg, #55b8ed, #ff9b6a);
+}
+
+@media (max-width: 900px) {
+  .nav {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nav .btn,
+  .nav .role-label { width: 100%; }
+}
+
+@media (max-width: 620px) {
+  .nav { grid-template-columns: 1fr; }
+  .container,
+  .study-exam-title,
+  .study-exam-shell,
+  .vocabulary-study-container { width: min(100% - 24px, 1120px); }
+}
+
+/* Keep page containers blended with the outer app background. */
+.container,
+.study-exam-title,
+.study-exam-shell,
+.vocabulary-study-container {
+  background: transparent !important;
+}
+
+/* Let page headers sit directly on the app background. */
+.page-head {
+  padding: 0 0 22px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.page-head .btn {
+  background: rgba(255, 255, 255, 0.56);
+  border-color: rgba(191, 228, 247, 0.72);
+  box-shadow: none;
+}
+
+.page-head .btn:hover {
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 22px rgba(23, 43, 58, 0.055);
+}

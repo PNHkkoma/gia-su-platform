@@ -1,13 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { BookOpen, Home } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { BookOpen, ClipboardList, Home } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { clearClientAuthUser } from '@/lib/client-auth';
 
 export function AppHeader({ role = 'guest' }: { role?: 'guest' | 'teacher' | 'student' }) {
   const router = useRouter();
+  const pathname = usePathname();
   const home = role === 'teacher' ? '/teacher/dashboard' : role === 'student' ? '/student/dashboard' : '/';
+  const testsPath = role === 'teacher' ? '/teacher/tests' : role === 'student' ? '/student/tests' : '';
+  const vocabularyPath = role === 'teacher' ? '/teacher/vocabulary' : role === 'student' ? '/student/vocabulary' : '';
+
+  function navClass(href: string) {
+    return pathname === href || pathname.startsWith(`${href}/`) ? 'btn soft nav-active' : 'btn soft';
+  }
 
   function logout() {
     clearClientAuthUser();
@@ -21,18 +28,18 @@ export function AppHeader({ role = 'guest' }: { role?: 'guest' | 'teacher' | 'st
         <span className="brand-name">Golden pony</span>
       </Link>
       <nav className="nav" aria-label="Điều hướng chính">
-        <Link className="btn soft" href={home}>
+        <Link className={navClass(home)} href={home}>
           <Home size={16} strokeWidth={2.2} />
           Trang chính
         </Link>
-        {role === 'teacher' ? (
-          <Link className="btn soft" href="/teacher/vocabulary">
-            <BookOpen size={16} strokeWidth={2.2} />
-            Vocabulary
+        {testsPath ? (
+          <Link className={navClass(testsPath)} href={testsPath}>
+            <ClipboardList size={16} strokeWidth={2.2} />
+            Bài kiểm tra
           </Link>
         ) : null}
-        {role === 'student' ? (
-          <Link className="btn soft" href="/student/vocabulary">
+        {vocabularyPath ? (
+          <Link className={navClass(vocabularyPath)} href={vocabularyPath}>
             <BookOpen size={16} strokeWidth={2.2} />
             Vocabulary
           </Link>
