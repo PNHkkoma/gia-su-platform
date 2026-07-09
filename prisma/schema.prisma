@@ -338,6 +338,7 @@ model FoundationLesson {
   createdAt           DateTime                   @default(now())
   updatedAt           DateTime                   @updatedAt
   progress            FoundationLessonProgress[]
+  blocks              FoundationLessonBlock[]
 }
 
 model FoundationLessonProgress {

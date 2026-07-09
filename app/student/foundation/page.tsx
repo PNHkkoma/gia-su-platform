@@ -6,7 +6,8 @@ import { AppHeader } from '@/app/components/AppHeader';
 import { getClientAuthUser } from '@/lib/client-auth';
 import { studentApi } from '@/lib/api/student';
 
-type Lesson = { id: string; title: string; content?: string; progressStatus: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'; estimatedMinutes: number; completionCondition: string };
+type Block = { id: string; type: 'HEADING' | 'TEXT' | 'CALLOUT' | 'QUOTE'; content: string; orderIndex: number };
+type Lesson = { id: string; title: string; progressStatus: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'; estimatedMinutes: number; completionCondition: string; blocks?: Block[] };
 type Unit = { id: string; title: string; description?: string; orderIndex: number; lessons?: Lesson[] };
 type Course = { id: string; title: string; description?: string; slug: string; teacherName?: string; estimatedMinutes?: number; lessonCount?: number; completedLessonCount?: number; continueLessonId?: string | null; units?: Unit[] };
 
@@ -18,6 +19,13 @@ function statusText(status: string) {
 
 function flattenLessons(course: Course | null) {
   return (course?.units ?? []).flatMap((unit) => (unit.lessons ?? []).map((lesson) => ({ ...lesson, unitTitle: unit.title })));
+}
+
+function RenderBlock({ block }: { block: Block }) {
+  if (block.type === 'HEADING') return <h2>{block.content}</h2>;
+  if (block.type === 'CALLOUT') return <div className="notice">{block.content}</div>;
+  if (block.type === 'QUOTE') return <blockquote className="quick-box">{block.content}</blockquote>;
+  return <p>{block.content}</p>;
 }
 
 export default function StudentFoundationPage() {
@@ -78,7 +86,6 @@ export default function StudentFoundationPage() {
           <Link className="btn" href="/student/dashboard">Quay lại dashboard</Link>
         </div>
         {error ? <div className="error">{error}</div> : null}
-
         <div className="teacher-manage-layout" style={{ marginTop: 18 }}>
           <aside className="test-list-panel">
             <div className="eyebrow">Khóa học published</div>
@@ -101,7 +108,6 @@ export default function StudentFoundationPage() {
               <div className="progress-track"><span style={{ width: `${percent}%` }} /></div>
               <div className="study-reward-row"><span>{active.estimatedMinutes ?? 0} phút</span></div>
             </div>
-
             <div className="dashboard-layout">
               <div className="list">
                 {(active.units ?? []).map((unit) => <article className="card panel" key={unit.id}>
@@ -116,13 +122,15 @@ export default function StudentFoundationPage() {
                   </div>
                 </article>)}
               </div>
-
               <aside className="card panel form">
                 {activeLesson ? <>
                   <div className="eyebrow">Bài học</div>
                   <h2>{activeLesson.title}</h2>
                   <span className="badge">{statusText(activeLesson.progressStatus)}</span>
-                  <p>{activeLesson.content || 'Lesson này chưa có nội dung chi tiết.'}</p>
+                  <div className="list">
+                    {(activeLesson.blocks ?? []).map((block) => <RenderBlock block={block} key={block.id} />)}
+                    {!activeLesson.blocks?.length ? <div className="notice">Lesson này chưa có block nội dung.</div> : null}
+                  </div>
                   <button className="btn" onClick={() => startLesson(activeLesson.id)}>Đánh dấu đang học</button>
                   <button className="btn primary" onClick={() => completeLesson(activeLesson.id)}>Hoàn thành Lesson</button>
                 </> : <div className="notice">Khóa học chưa có lesson published.</div>}

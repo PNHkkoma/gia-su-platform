@@ -215,6 +215,30 @@ public class TeacherController {
         Map<String, Object> course = foundationCourseService.updateLesson(lessonId, body);
         return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson not found") : ApiResponse.ok(course);
     }
+
+    @PostMapping("/foundation-lessons/{lessonId}/blocks")
+    public ApiResponse<?> createFoundationLessonBlock(@PathVariable String lessonId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> course = foundationCourseService.createBlock(lessonId, body);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson not found") : ApiResponse.ok(course);
+    }
+
+    @PatchMapping("/foundation-lessons/{lessonId}/blocks/reorder")
+    public ApiResponse<?> reorderFoundationLessonBlocks(@PathVariable String lessonId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> course = foundationCourseService.reorderBlocks(lessonId, body);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson not found") : ApiResponse.ok(course);
+    }
+
+    @PatchMapping("/foundation-blocks/{blockId}")
+    public ApiResponse<?> updateFoundationLessonBlock(@PathVariable String blockId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> course = foundationCourseService.updateBlock(blockId, body);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson block not found") : ApiResponse.ok(course);
+    }
+
+    @DeleteMapping("/foundation-blocks/{blockId}")
+    public ApiResponse<?> deleteFoundationLessonBlock(@PathVariable String blockId) {
+        Map<String, Object> course = foundationCourseService.deleteBlock(blockId);
+        return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson block not found") : ApiResponse.ok(course);
+    }
     @GetMapping("/questions")
     public ApiResponse<?> questions(
         @RequestParam(required = false) String teacherId,

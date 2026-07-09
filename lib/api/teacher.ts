@@ -59,6 +59,25 @@ export const teacherApi = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
+  createFoundationBlock: (lessonId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-lessons/${lessonId}/blocks`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateFoundationBlock: (blockId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-blocks/${blockId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  deleteFoundationBlock: (blockId: string) =>
+    request(`/teachers/foundation-blocks/${blockId}`, {
+      method: 'DELETE',
+    }),
+  reorderFoundationBlocks: (lessonId: string, blockIds: string[]) =>
+    request(`/teachers/foundation-lessons/${lessonId}/blocks/reorder`, {
+      method: 'PATCH',
+      body: JSON.stringify({ blockIds }),
+    }),
 
   getVocabularySets: () => request('/teachers/vocabulary'),
   getVocabularyAudience: () => request('/teachers/vocabulary/audience'),

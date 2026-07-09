@@ -130,6 +130,48 @@ public class FoundationCourseService {
         return teacherCourse(slug);
     }
 
+
+    @Transactional
+    public Map<String, Object> createBlock(String lessonId, Map<String, Object> body) {
+        String slug = slugForLesson(lessonId);
+        if (slug == null) return null;
+        String id = UUID.randomUUID().toString();
+        jdbc.update("""
+            insert into "FoundationLessonBlock" ("id", "lessonId", "type", "content", "orderIndex", "createdAt", "updatedAt")
+            values (?, ?, ?, ?, ?, current_timestamp, current_timestamp)
+            """, id, lessonId, blockType(str(body.get("type"))), text(str(body.get("content")), ""), intVal(body.get("orderIndex"), nextBlockOrder(lessonId)));
+        return teacherCourse(slug);
+    }
+
+    @Transactional
+    public Map<String, Object> updateBlock(String blockId, Map<String, Object> body) {
+        String slug = slugForBlock(blockId);
+        if (slug == null) return null;
+        jdbc.update("""
+            update "FoundationLessonBlock" set "type" = coalesce(?, "type"), "content" = coalesce(?, "content"),
+              "orderIndex" = coalesce(?, "orderIndex"), "updatedAt" = current_timestamp where "id" = ?
+            """, blankToNull(blockType(str(body.get("type"))), true), str(body.get("content")), nullableInt(body.get("orderIndex")), blockId);
+        return teacherCourse(slug);
+    }
+
+    @Transactional
+    public Map<String, Object> deleteBlock(String blockId) {
+        String slug = slugForBlock(blockId);
+        if (slug == null) return null;
+        jdbc.update("delete from " + "\"FoundationLessonBlock\"" + " where \"id\" = ?", blockId);
+        return teacherCourse(slug);
+    }
+
+    @Transactional
+    public Map<String, Object> reorderBlocks(String lessonId, Map<String, Object> body) {
+        String slug = slugForLesson(lessonId);
+        if (slug == null) return null;
+        List<String> ids = stringList(body.get("blockIds"));
+        for (int i = 0; i < ids.size(); i++) {
+            jdbc.update("update \"FoundationLessonBlock\" set \"orderIndex\" = ?, \"updatedAt\" = current_timestamp where \"id\" = ? and \"lessonId\" = ?", i, ids.get(i), lessonId);
+        }
+        return teacherCourse(slug);
+    }
     public List<Map<String, Object>> studentCourses(String studentId, String studentEmail) {
         String sid = studentId(studentId, studentEmail);
         return jdbc.query("""
@@ -241,7 +283,7 @@ public class FoundationCourseService {
         row.put("id", rs.getString("id")); row.put("title", rs.getString("title")); row.put("content", rs.getString("content")); row.put("status", rs.getString("status"));
         row.put("orderIndex", rs.getInt("orderIndex")); row.put("estimatedMinutes", rs.getInt("estimatedMinutes")); row.put("completionCondition", rs.getString("completionCondition"));
         String progress = rs.getString("progressStatus"); row.put("progressStatus", progress == null ? "NOT_STARTED" : progress);
-        row.put("startedAt", iso(rs.getTimestamp("startedAt"))); row.put("completedAt", iso(rs.getTimestamp("completedAt")));
+        row.put("startedAt", iso(rs.getTimestamp("startedAt"))); row.put("completedAt", iso(rs.getTimestamp("completedAt"))); row.put("blocks", blocks(rs.getString("id")));
         return row;
     }
 
@@ -251,6 +293,38 @@ public class FoundationCourseService {
         }, studentId, lessonId);
     }
 
+    private List<Map<String, Object>> blocks(String lessonId) {
+        return jdbc.query("""
+            select "id", "type", "content", "orderIndex" from "FoundationLessonBlock" where "lessonId" = ? order by "orderIndex" asc, "createdAt" asc
+            """, (rs, i) -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", rs.getString("id")); row.put("type", rs.getString("type")); row.put("content", rs.getString("content")); row.put("orderIndex", rs.getInt("orderIndex"));
+            return row;
+        }, lessonId);
+    }
+
+    private String slugForBlock(String id) {
+        List<String> rows = jdbc.queryForList("select c.\"slug\" from \"FoundationLessonBlock\" b join \"FoundationLesson\" l on l.\"id\" = b.\"lessonId\" join \"FoundationUnit\" u on u.\"id\" = l.\"unitId\" join \"FoundationCourse\" c on c.\"id\" = u.\"courseId\" where b.\"id\" = ?", String.class, id);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
+    private int nextBlockOrder(String lessonId) {
+        Integer v = jdbc.queryForObject("select coalesce(max(\"orderIndex\"), -1) + 1 from \"FoundationLessonBlock\" where \"lessonId\" = ?", Integer.class, lessonId);
+        return v == null ? 0 : v;
+    }
+
+    private String blockType(String value) {
+        if (value == null || value.isBlank()) return "TEXT";
+        String v = value.toUpperCase();
+        return v.equals("HEADING") || v.equals("CALLOUT") || v.equals("QUOTE") || v.equals("TEXT") ? v : "TEXT";
+    }
+
+    private List<String> stringList(Object value) {
+        if (!(value instanceof List<?> raw)) return List.of();
+        List<String> result = new ArrayList<>();
+        for (Object item : raw) if (item != null && !String.valueOf(item).isBlank()) result.add(String.valueOf(item));
+        return result;
+    }
     private void safePutInt(Map<String, Object> row, java.sql.ResultSet rs, String key) { try { row.put(key, rs.getInt(key)); } catch (Exception ignored) {} }
     private String courseId(String slug) { List<String> ids = jdbc.queryForList("select \"id\" from \"FoundationCourse\" where \"slug\" = ?", String.class, slug); return ids.isEmpty() ? null : ids.get(0); }
     private String slugForCourse(String id) { return jdbc.queryForObject("select \"slug\" from \"FoundationCourse\" where \"id\" = ?", String.class, id); }
