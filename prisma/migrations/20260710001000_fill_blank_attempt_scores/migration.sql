@@ -1,0 +1,2 @@
+ALTER TABLE "ExerciseAttempt" ALTER COLUMN "score" TYPE double precision USING "score"::double precision;
+ALTER TABLE "ExerciseAttempt" ALTER COLUMN "maxScore" TYPE double precision USING "maxScore"::double precision;

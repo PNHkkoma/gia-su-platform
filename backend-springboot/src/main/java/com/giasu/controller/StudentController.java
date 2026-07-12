@@ -2,10 +2,12 @@ package com.giasu.controller;
 
 import com.giasu.common.ApiResponse;
 import com.giasu.service.FoundationCourseService;
+import com.giasu.service.GrammarMiniQuizService;
 import com.giasu.service.TestService;
 import com.giasu.service.VocabularyService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,11 +22,13 @@ public class StudentController {
     private final TestService testService;
     private final VocabularyService vocabularyService;
     private final FoundationCourseService foundationCourseService;
+    private final GrammarMiniQuizService grammarMiniQuizService;
 
-    public StudentController(TestService testService, VocabularyService vocabularyService, FoundationCourseService foundationCourseService) {
+    public StudentController(TestService testService, VocabularyService vocabularyService, FoundationCourseService foundationCourseService, GrammarMiniQuizService grammarMiniQuizService) {
         this.testService = testService;
         this.vocabularyService = vocabularyService;
         this.foundationCourseService = foundationCourseService;
+        this.grammarMiniQuizService = grammarMiniQuizService;
     }
     @GetMapping("/foundation-courses")
     public ApiResponse<?> foundationCourses(
@@ -62,6 +66,56 @@ public class StudentController {
     ) {
         Map<String, Object> progress = foundationCourseService.completeLesson(lessonId, studentId, studentEmail);
         return progress == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson not found") : ApiResponse.ok(progress);
+    }
+
+
+    @GetMapping("/foundation-blocks/{blockId}/grammar-mini-quiz")
+    public ApiResponse<?> grammarMiniQuiz(
+        @PathVariable String blockId,
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail
+    ) {
+        Map<String, Object> quiz = grammarMiniQuizService.studentQuiz(blockId, studentId, studentEmail);
+        return quiz == null ? ApiResponse.fail("NOT_FOUND", "Grammar mini quiz not found") : ApiResponse.ok(quiz);
+    }
+
+    @PostMapping("/grammar-mini-quizzes/{quizId}/start")
+    public ApiResponse<?> startGrammarMiniQuiz(
+        @PathVariable String quizId,
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail,
+        @RequestBody(required = false) Map<String, Object> body
+    ) {
+        Map<String, Object> payload = new java.util.LinkedHashMap<>(body == null ? Map.of() : body);
+        if (studentId != null) payload.put("studentId", studentId);
+        if (studentEmail != null) payload.put("studentEmail", studentEmail);
+        Map<String, Object> attempt = grammarMiniQuizService.start(quizId, payload);
+        return attempt == null ? ApiResponse.fail("NOT_FOUND", "Grammar mini quiz not found") : ApiResponse.ok(attempt);
+    }
+
+    @PatchMapping("/grammar-mini-quiz-attempts/{attemptId}/autosave")
+    public ApiResponse<?> autosaveGrammarMiniQuiz(@PathVariable String attemptId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> attempt = grammarMiniQuizService.autosave(attemptId, body);
+        return attempt == null ? ApiResponse.fail("NOT_FOUND", "Quiz attempt not found") : ApiResponse.ok(attempt);
+    }
+
+    @PostMapping("/grammar-mini-quiz-attempts/{attemptId}/submit")
+    public ApiResponse<?> submitGrammarMiniQuiz(@PathVariable String attemptId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> attempt = grammarMiniQuizService.submit(attemptId, body);
+        return attempt == null ? ApiResponse.fail("NOT_FOUND", "Quiz attempt not found") : ApiResponse.ok(attempt);
+    }
+    @PostMapping("/grammar-exercises/{exerciseId}/submit")
+    public ApiResponse<?> submitGrammarExercise(
+        @PathVariable String exerciseId,
+        @RequestParam(required = false) String studentId,
+        @RequestParam(required = false) String studentEmail,
+        @RequestBody Map<String, Object> body
+    ) {
+        Map<String, Object> payload = new java.util.LinkedHashMap<>(body);
+        if (studentId != null) payload.put("studentId", studentId);
+        if (studentEmail != null) payload.put("studentEmail", studentEmail);
+        Map<String, Object> result = foundationCourseService.submitSingleChoiceExercise(exerciseId, payload);
+        return result == null ? ApiResponse.fail("NOT_FOUND", "Grammar exercise not found") : ApiResponse.ok(result);
     }
     @GetMapping("/tests")
     public ApiResponse<?> tests() {

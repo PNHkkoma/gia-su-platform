@@ -2,6 +2,8 @@ package com.giasu.controller;
 
 import com.giasu.common.ApiResponse;
 import com.giasu.service.FoundationCourseService;
+import com.giasu.service.GrammarExerciseService;
+import com.giasu.service.GrammarMiniQuizService;
 import com.giasu.service.TestService;
 import com.giasu.service.VocabularyService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,11 +25,15 @@ public class TeacherController {
     private final TestService testService;
     private final VocabularyService vocabularyService;
     private final FoundationCourseService foundationCourseService;
+    private final GrammarExerciseService grammarExerciseService;
+    private final GrammarMiniQuizService grammarMiniQuizService;
 
-    public TeacherController(TestService testService, VocabularyService vocabularyService, FoundationCourseService foundationCourseService) {
+    public TeacherController(TestService testService, VocabularyService vocabularyService, FoundationCourseService foundationCourseService, GrammarExerciseService grammarExerciseService, GrammarMiniQuizService grammarMiniQuizService) {
         this.testService = testService;
         this.vocabularyService = vocabularyService;
         this.foundationCourseService = foundationCourseService;
+        this.grammarExerciseService = grammarExerciseService;
+        this.grammarMiniQuizService = grammarMiniQuizService;
     }
 
     @GetMapping("/dashboard")
@@ -238,6 +244,93 @@ public class TeacherController {
     public ApiResponse<?> deleteFoundationLessonBlock(@PathVariable String blockId) {
         Map<String, Object> course = foundationCourseService.deleteBlock(blockId);
         return course == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson block not found") : ApiResponse.ok(course);
+    }
+
+    @GetMapping("/foundation-lessons/{lessonId}/grammar-exercises")
+    public ApiResponse<?> foundationLessonGrammarExercises(
+        @PathVariable String lessonId,
+        @RequestParam(required = false) String teacherId,
+        @RequestParam(required = false) String teacherEmail,
+        @RequestParam(defaultValue = "false") boolean admin
+    ) {
+        return ApiResponse.ok(grammarExerciseService.byLesson(lessonId, teacherId, teacherEmail, admin));
+    }
+
+    @PostMapping("/foundation-lessons/{lessonId}/grammar-exercises")
+    public ApiResponse<?> createFoundationLessonGrammarExercise(@PathVariable String lessonId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> exercise = grammarExerciseService.createForLesson(lessonId, body);
+        return exercise == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson not found") : ApiResponse.ok(exercise);
+    }
+
+    @GetMapping("/foundation-blocks/{blockId}/grammar-exercises")
+    public ApiResponse<?> foundationBlockGrammarExercises(
+        @PathVariable String blockId,
+        @RequestParam(required = false) String teacherId,
+        @RequestParam(required = false) String teacherEmail,
+        @RequestParam(defaultValue = "false") boolean admin
+    ) {
+        return ApiResponse.ok(grammarExerciseService.byBlock(blockId, teacherId, teacherEmail, admin));
+    }
+
+    @PostMapping("/foundation-blocks/{blockId}/grammar-exercises")
+    public ApiResponse<?> createFoundationBlockGrammarExercise(@PathVariable String blockId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> exercise = grammarExerciseService.createForBlock(blockId, body);
+        return exercise == null ? ApiResponse.fail("NOT_FOUND", "Foundation lesson block not found") : ApiResponse.ok(exercise);
+    }
+
+
+    @GetMapping("/foundation-blocks/{blockId}/grammar-mini-quiz")
+    public ApiResponse<?> foundationBlockGrammarMiniQuiz(
+        @PathVariable String blockId,
+        @RequestParam(required = false) String teacherId,
+        @RequestParam(required = false) String teacherEmail,
+        @RequestParam(defaultValue = "false") boolean admin
+    ) {
+        Map<String, Object> quiz = grammarMiniQuizService.teacherQuiz(blockId, teacherId, teacherEmail, admin);
+        return ApiResponse.ok(quiz);
+    }
+
+    @PatchMapping("/foundation-blocks/{blockId}/grammar-mini-quiz")
+    public ApiResponse<?> saveFoundationBlockGrammarMiniQuiz(@PathVariable String blockId, @RequestBody Map<String, Object> body) {
+        return ApiResponse.ok(grammarMiniQuizService.saveTeacherQuiz(blockId, body));
+    }
+
+    @GetMapping("/foundation-blocks/{blockId}/grammar-progress")
+    public ApiResponse<?> foundationBlockGrammarProgress(
+        @PathVariable String blockId,
+        @RequestParam(required = false) String teacherId,
+        @RequestParam(required = false) String teacherEmail,
+        @RequestParam(defaultValue = "false") boolean admin
+    ) {
+        return ApiResponse.ok(grammarMiniQuizService.teacherProgress(blockId, teacherId, teacherEmail, admin));
+    }
+    @GetMapping("/grammar-exercises/{exerciseId}")
+    public ApiResponse<?> grammarExercise(
+        @PathVariable String exerciseId,
+        @RequestParam(required = false) String teacherId,
+        @RequestParam(required = false) String teacherEmail,
+        @RequestParam(defaultValue = "false") boolean admin
+    ) {
+        Map<String, Object> exercise = grammarExerciseService.one(exerciseId, teacherId, teacherEmail, admin);
+        return exercise == null ? ApiResponse.fail("NOT_FOUND", "Grammar exercise not found") : ApiResponse.ok(exercise);
+    }
+
+    @PatchMapping("/grammar-exercises/{exerciseId}")
+    public ApiResponse<?> updateGrammarExercise(@PathVariable String exerciseId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> exercise = grammarExerciseService.update(exerciseId, body);
+        return exercise == null ? ApiResponse.fail("NOT_FOUND", "Grammar exercise not found") : ApiResponse.ok(exercise);
+    }
+
+    @DeleteMapping("/grammar-exercises/{exerciseId}")
+    public ApiResponse<?> deleteGrammarExercise(
+        @PathVariable String exerciseId,
+        @RequestParam(required = false) String teacherId,
+        @RequestParam(required = false) String teacherEmail,
+        @RequestParam(defaultValue = "false") boolean admin
+    ) {
+        return grammarExerciseService.delete(exerciseId, teacherId, teacherEmail, admin)
+            ? ApiResponse.ok(Map.of("deleted", true))
+            : ApiResponse.fail("NOT_FOUND", "Grammar exercise not found");
     }
     @GetMapping("/questions")
     public ApiResponse<?> questions(

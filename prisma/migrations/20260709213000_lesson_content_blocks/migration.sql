@@ -1,4 +1,4 @@
-﻿create table if not exists "FoundationLessonBlock" (
+create table if not exists "FoundationLessonBlock" (
   "id" text primary key,
   "lessonId" text not null references "FoundationLesson"("id") on delete cascade,
   "type" text not null default 'TEXT',

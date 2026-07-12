@@ -49,6 +49,19 @@ enum ShowResultMode {
   MANUAL
   NEVER
 }
+enum GrammarExerciseType {
+  SINGLE_CHOICE
+  FILL_BLANK
+  REORDER_WORDS
+  MATCHING
+  ERROR_CORRECTION
+  SHORT_SENTENCE
+}
+
+enum GrammarExerciseStatus {
+  DRAFT
+  PUBLISHED
+}
 
 model User {
   id                    String                      @id @default(uuid())
@@ -73,6 +86,8 @@ model User {
   notifications         Notification[]
   foundationCourses     FoundationCourse[]          @relation("TeacherFoundationCourses")
   foundationProgress    FoundationLessonProgress[]  @relation("StudentFoundationProgress")
+  exerciseAttempts      ExerciseAttempt[]           @relation("StudentExerciseAttempts")
+  quizAttempts          QuizAttempt[]
 }
 
 model TeacherProfile {
@@ -339,8 +354,129 @@ model FoundationLesson {
   updatedAt           DateTime                   @updatedAt
   progress            FoundationLessonProgress[]
   blocks              FoundationLessonBlock[]
+  grammarExercises    GrammarExercise[]
 }
 
+
+model FoundationLessonBlock {
+  id               String            @id @default(uuid())
+  lesson           FoundationLesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId         String
+  type             String            @default("TEXT")
+  content          String            @default("")
+  orderIndex       Int               @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  grammarExercises GrammarExercise[]
+  grammarMiniQuiz  GrammarMiniQuiz?
+
+  @@index([lessonId, orderIndex])
+}
+
+model GrammarExercise {
+  id              String                @id @default(uuid())
+  lesson          FoundationLesson?     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId        String?
+  lessonBlock     FoundationLessonBlock? @relation(fields: [lessonBlockId], references: [id], onDelete: Cascade)
+  lessonBlockId   String?
+  type            GrammarExerciseType
+  instruction     String?
+  question        String
+  explanation     String?
+  hint            String?
+  score           Int                   @default(1)
+  orderIndex      Int                   @default(0)
+  status          GrammarExerciseStatus @default(DRAFT)
+  options         Json                  @default("[]")
+  acceptedAnswers Json                  @default("[]")
+  matchingPairs   Json                  @default("[]")
+  wordTokens      Json                  @default("[]")
+  correctOrder    Json                  @default("[]")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  attempts        ExerciseAttempt[]
+  quizItems       GrammarMiniQuizItem[]
+
+  @@index([lessonId, orderIndex])
+  @@index([lessonBlockId, orderIndex])
+}
+
+model ExerciseAttempt {
+  id                String          @id @default(uuid())
+  student           User            @relation("StudentExerciseAttempts", fields: [studentId], references: [id])
+  studentId         String
+  exercise          GrammarExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  exerciseId        String
+  quizAttempt       QuizAttempt?    @relation("QuizExerciseAttempts", fields: [quizAttemptId], references: [id], onDelete: SetNull)
+  quizAttemptId     String?
+  selectedOptionId  String?
+  answerPayload     Json            @default("{}")
+  isCorrect         Boolean
+  score             Float           @default(0)
+  maxScore          Float           @default(0)
+  status            String          @default("SUBMITTED")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([studentId, exerciseId])
+  @@index([exerciseId])
+  @@index([quizAttemptId])
+}
+
+model GrammarMiniQuiz {
+  id                  String                @id @default(uuid())
+  lessonBlock         FoundationLessonBlock @relation(fields: [lessonBlockId], references: [id], onDelete: Cascade)
+  lessonBlockId       String                @unique
+  title               String                @default("Grammar mini quiz")
+  passScore           Float                 @default(70)
+  maxAttempts         Int                   @default(1)
+  showExplanationMode String                @default("AFTER_SUBMIT")
+  status              String                @default("DRAFT")
+  items               GrammarMiniQuizItem[]
+  attempts            QuizAttempt[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+}
+
+model GrammarMiniQuizItem {
+  id         String          @id @default(uuid())
+  quiz       GrammarMiniQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId     String
+  exercise   GrammarExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  exerciseId String
+  orderIndex Int             @default(0)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@unique([quizId, exerciseId])
+  @@index([quizId, orderIndex])
+}
+
+model QuizAttempt {
+  id              String           @id @default(uuid())
+  student         User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId       String
+  quiz            GrammarMiniQuiz  @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId          String
+  attemptNumber   Int              @default(1)
+  answers         Json             @default("{}")
+  score           Float            @default(0)
+  maxScore        Float            @default(0)
+  correctCount    Int              @default(0)
+  incorrectCount  Int              @default(0)
+  unansweredCount Int              @default(0)
+  percentage      Float            @default(0)
+  passed          Boolean          @default(false)
+  status          String           @default("IN_PROGRESS")
+  startedAt       DateTime         @default(now())
+  submittedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  exerciseAttempts ExerciseAttempt[] @relation("QuizExerciseAttempts")
+
+  @@index([studentId, quizId])
+  @@index([quizId])
+}
 model FoundationLessonProgress {
   id          String           @id @default(uuid())
   student     User             @relation("StudentFoundationProgress", fields: [studentId], references: [id])

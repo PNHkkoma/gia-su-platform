@@ -1,12 +1,14 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AppHeader } from '@/app/components/AppHeader';
 import { getClientAuthUser } from '@/lib/client-auth';
 import { studentApi } from '@/lib/api/student';
+import { StudentGrammarExercise } from './GrammarExercisePlayer';
+import { GrammarMiniQuizPlayer } from './GrammarMiniQuizPlayer';
 
-type Block = { id: string; type: 'HEADING' | 'TEXT' | 'CALLOUT' | 'QUOTE'; content: string; orderIndex: number };
+type Block = { id: string; type: 'HEADING' | 'TEXT' | 'CALLOUT' | 'QUOTE' | 'GRAMMAR_EXERCISE'; content: string; orderIndex: number; grammarExercises?: StudentGrammarExercise[] };
 type Lesson = { id: string; title: string; progressStatus: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'; estimatedMinutes: number; completionCondition: string; blocks?: Block[] };
 type Unit = { id: string; title: string; description?: string; orderIndex: number; lessons?: Lesson[] };
 type Course = { id: string; title: string; description?: string; slug: string; teacherName?: string; estimatedMinutes?: number; lessonCount?: number; completedLessonCount?: number; continueLessonId?: string | null; units?: Unit[] };
@@ -21,10 +23,11 @@ function flattenLessons(course: Course | null) {
   return (course?.units ?? []).flatMap((unit) => (unit.lessons ?? []).map((lesson) => ({ ...lesson, unitTitle: unit.title })));
 }
 
-function RenderBlock({ block }: { block: Block }) {
+function RenderBlock({ block, lessonId, studentKey, studentEmail }: { block: Block; lessonId: string; studentKey: string; studentEmail?: string }) {
   if (block.type === 'HEADING') return <h2>{block.content}</h2>;
   if (block.type === 'CALLOUT') return <div className="notice">{block.content}</div>;
   if (block.type === 'QUOTE') return <blockquote className="quick-box">{block.content}</blockquote>;
+  if (block.type === 'GRAMMAR_EXERCISE') return <GrammarMiniQuizPlayer blockId={block.id} exercises={block.grammarExercises ?? []} lessonId={lessonId} studentKey={studentKey} studentEmail={studentEmail} />;
   return <p>{block.content}</p>;
 }
 
@@ -33,7 +36,9 @@ export default function StudentFoundationPage() {
   const [active, setActive] = useState<Course | null>(null);
   const [activeLessonId, setActiveLessonId] = useState('');
   const [error, setError] = useState('');
-  const userEmail = getClientAuthUser()?.email;
+  const user = getClientAuthUser();
+  const userEmail = user?.email;
+  const studentKey = user?.id || userEmail || 'guest';
 
   async function loadCourses(nextSlug?: string) {
     try {
@@ -128,7 +133,7 @@ export default function StudentFoundationPage() {
                   <h2>{activeLesson.title}</h2>
                   <span className="badge">{statusText(activeLesson.progressStatus)}</span>
                   <div className="list">
-                    {(activeLesson.blocks ?? []).map((block) => <RenderBlock block={block} key={block.id} />)}
+                    {(activeLesson.blocks ?? []).map((block) => <RenderBlock block={block} lessonId={activeLesson.id} studentKey={studentKey} studentEmail={userEmail} key={block.id} />)}
                     {!activeLesson.blocks?.length ? <div className="notice">Lesson này chưa có block nội dung.</div> : null}
                   </div>
                   <button className="btn" onClick={() => startLesson(activeLesson.id)}>Đánh dấu đang học</button>

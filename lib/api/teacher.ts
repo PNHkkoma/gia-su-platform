@@ -78,6 +78,40 @@ export const teacherApi = {
       method: 'PATCH',
       body: JSON.stringify({ blockIds }),
     }),
+  getLessonGrammarExercises: (lessonId: string, params = '') =>
+    request(`/teachers/foundation-lessons/${lessonId}/grammar-exercises${params}`),
+  createLessonGrammarExercise: (lessonId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-lessons/${lessonId}/grammar-exercises`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getBlockGrammarExercises: (blockId: string, params = '') =>
+    request(`/teachers/foundation-blocks/${blockId}/grammar-exercises${params}`),
+  createBlockGrammarExercise: (blockId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-blocks/${blockId}/grammar-exercises`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getGrammarProgress: (blockId: string, params = '') =>
+    request(`/teachers/foundation-blocks/${blockId}/grammar-progress${params}`),
+  getGrammarMiniQuiz: (blockId: string, params = '') =>
+    request(`/teachers/foundation-blocks/${blockId}/grammar-mini-quiz${params}`),
+  saveGrammarMiniQuiz: (blockId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/foundation-blocks/${blockId}/grammar-mini-quiz`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  getGrammarExercise: (exerciseId: string, params = '') =>
+    request(`/teachers/grammar-exercises/${exerciseId}${params}`),
+  updateGrammarExercise: (exerciseId: string, payload: Record<string, unknown>) =>
+    request(`/teachers/grammar-exercises/${exerciseId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  deleteGrammarExercise: (exerciseId: string, params = '') =>
+    request(`/teachers/grammar-exercises/${exerciseId}${params}`, {
+      method: 'DELETE',
+    }),
 
   getVocabularySets: () => request('/teachers/vocabulary'),
   getVocabularyAudience: () => request('/teachers/vocabulary/audience'),

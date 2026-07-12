@@ -4,8 +4,9 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AppHeader } from '@/app/components/AppHeader';
 import { teacherApi } from '@/lib/api/teacher';
+import { GrammarExerciseBuilder } from './GrammarExerciseBuilder';
 
-type BlockType = 'HEADING' | 'TEXT' | 'CALLOUT' | 'QUOTE';
+type BlockType = 'HEADING' | 'TEXT' | 'CALLOUT' | 'QUOTE' | 'GRAMMAR_EXERCISE';
 type Block = { id: string; type: BlockType; content: string; orderIndex: number };
 type Lesson = { id: string; title: string; status: string; orderIndex: number; estimatedMinutes: number; completionCondition: string; blocks?: Block[] };
 type Unit = { id: string; title: string; description?: string; orderIndex: number; lessons?: Lesson[] };
@@ -33,6 +34,7 @@ function RenderBlock({ block }: { block: Block }) {
   if (block.type === 'HEADING') return <h2>{block.content}</h2>;
   if (block.type === 'CALLOUT') return <div className="notice">{block.content}</div>;
   if (block.type === 'QUOTE') return <blockquote className="quick-box">{block.content}</blockquote>;
+  if (block.type === 'GRAMMAR_EXERCISE') return <div className="notice">Grammar exercise block</div>;
   return <p>{block.content}</p>;
 }
 
@@ -101,9 +103,9 @@ export default function TeacherFoundationPage() {
   async function saveUnit(unitId: string) { const form = editingUnits[unitId]; if (!form) return; await refreshFrom(await teacherApi.updateFoundationUnit(unitId, { ...form, orderIndex: numeric(form.orderIndex) })); }
   async function createLesson(event: FormEvent<HTMLFormElement>, unitId: string) { event.preventDefault(); const form = lessonDrafts[unitId] || emptyLesson; if (!form.title.trim()) return; await refreshFrom(await teacherApi.createFoundationLesson(unitId, { ...form, orderIndex: numeric(form.orderIndex), estimatedMinutes: numeric(form.estimatedMinutes) })); setLessonDrafts((current) => ({ ...current, [unitId]: emptyLesson })); }
   async function saveLesson(lessonId: string) { const form = editingLessons[lessonId]; if (!form) return; await refreshFrom(await teacherApi.updateFoundationLesson(lessonId, { ...form, orderIndex: numeric(form.orderIndex), estimatedMinutes: numeric(form.estimatedMinutes) })); }
-  async function createBlock(event: FormEvent<HTMLFormElement>, lessonId: string) { event.preventDefault(); const form = blockDrafts[lessonId] || emptyBlock; if (!form.content.trim()) return; await refreshFrom(await teacherApi.createFoundationBlock(lessonId, { ...form, orderIndex: numeric(form.orderIndex) })); setBlockDrafts((current) => ({ ...current, [lessonId]: emptyBlock })); }
+  async function createBlock(event: FormEvent<HTMLFormElement>, lessonId: string) { event.preventDefault(); const form = blockDrafts[lessonId] || emptyBlock; const content = form.content.trim() || (form.type === 'GRAMMAR_EXERCISE' ? 'Grammar exercise' : ''); if (!content) return; await refreshFrom(await teacherApi.createFoundationBlock(lessonId, { ...form, content, orderIndex: numeric(form.orderIndex) })); setBlockDrafts((current) => ({ ...current, [lessonId]: emptyBlock })); }
   async function saveBlock(blockId: string) { const form = editingBlocks[blockId]; if (!form) return; await refreshFrom(await teacherApi.updateFoundationBlock(blockId, { ...form, orderIndex: numeric(form.orderIndex) })); }
-  async function deleteBlock(blockId: string) { await refreshFrom(await teacherApi.deleteFoundationBlock(blockId)); }
+  async function deleteBlock(blockId: string) { if (!window.confirm('Xóa block này?')) return; await refreshFrom(await teacherApi.deleteFoundationBlock(blockId)); }
   async function dropBlock(lesson: Lesson, targetId: string) {
     if (!dragBlockId || dragBlockId === targetId) return;
     const ids = (lesson.blocks ?? []).map((block) => block.id).filter((id) => id !== dragBlockId);
@@ -147,14 +149,15 @@ export default function TeacherFoundationPage() {
                         const bf = editingBlocks[block.id] || blockForm(block);
                         return <article className="card item form" key={block.id} draggable onDragStart={() => setDragBlockId(block.id)} onDragOver={(e) => e.preventDefault()} onDrop={() => dropBlock(lesson, block.id)}>
                           <div className="row"><span className="badge">{block.type}</span><div className="actions"><button className="btn" type="button" onClick={() => saveBlock(block.id)}>Lưu block</button><button className="btn danger" type="button" onClick={() => deleteBlock(block.id)}>Xóa</button></div></div>
-                          <div className="compact-fields"><select className="select" value={bf.type} onChange={(e) => setEditingBlocks({ ...editingBlocks, [block.id]: { ...bf, type: e.target.value as BlockType } })}><option value="HEADING">Heading</option><option value="TEXT">Text</option><option value="CALLOUT">Callout</option><option value="QUOTE">Quote</option></select><input className="input" type="number" value={bf.orderIndex} onChange={(e) => setEditingBlocks({ ...editingBlocks, [block.id]: { ...bf, orderIndex: e.target.value } })} /></div>
+                          <div className="compact-fields"><select className="select" value={bf.type} onChange={(e) => setEditingBlocks({ ...editingBlocks, [block.id]: { ...bf, type: e.target.value as BlockType } })}><option value="HEADING">Heading</option><option value="TEXT">Text</option><option value="CALLOUT">Callout</option><option value="QUOTE">Quote</option><option value="GRAMMAR_EXERCISE">Grammar Exercise</option></select><input className="input" type="number" value={bf.orderIndex} onChange={(e) => setEditingBlocks({ ...editingBlocks, [block.id]: { ...bf, orderIndex: e.target.value } })} /></div>
                           <textarea className="textarea" value={bf.content} onChange={(e) => setEditingBlocks({ ...editingBlocks, [block.id]: { ...bf, content: e.target.value } })} />
+                          {block.type === 'GRAMMAR_EXERCISE' || bf.type === 'GRAMMAR_EXERCISE' ? <GrammarExerciseBuilder blockId={block.id} /> : null}
                         </article>;
                       })}
                     </div>
                     <form className="card item form" onSubmit={(e) => createBlock(e, lesson.id)}>
                       <div className="eyebrow">Thêm block</div>
-                      <div className="compact-fields"><select className="select" value={(blockDrafts[lesson.id] || emptyBlock).type} onChange={(e) => setBlockDrafts({ ...blockDrafts, [lesson.id]: { ...(blockDrafts[lesson.id] || emptyBlock), type: e.target.value as BlockType } })}><option value="HEADING">Heading</option><option value="TEXT">Text</option><option value="CALLOUT">Callout</option><option value="QUOTE">Quote</option></select><input className="input" placeholder="Thứ tự" type="number" value={(blockDrafts[lesson.id] || emptyBlock).orderIndex} onChange={(e) => setBlockDrafts({ ...blockDrafts, [lesson.id]: { ...(blockDrafts[lesson.id] || emptyBlock), orderIndex: e.target.value } })} /></div>
+                      <div className="compact-fields"><select className="select" value={(blockDrafts[lesson.id] || emptyBlock).type} onChange={(e) => setBlockDrafts({ ...blockDrafts, [lesson.id]: { ...(blockDrafts[lesson.id] || emptyBlock), type: e.target.value as BlockType } })}><option value="HEADING">Heading</option><option value="TEXT">Text</option><option value="CALLOUT">Callout</option><option value="QUOTE">Quote</option><option value="GRAMMAR_EXERCISE">Grammar Exercise</option></select><input className="input" placeholder="Thứ tự" type="number" value={(blockDrafts[lesson.id] || emptyBlock).orderIndex} onChange={(e) => setBlockDrafts({ ...blockDrafts, [lesson.id]: { ...(blockDrafts[lesson.id] || emptyBlock), orderIndex: e.target.value } })} /></div>
                       <textarea className="textarea" placeholder="Nội dung block" value={(blockDrafts[lesson.id] || emptyBlock).content} onChange={(e) => setBlockDrafts({ ...blockDrafts, [lesson.id]: { ...(blockDrafts[lesson.id] || emptyBlock), content: e.target.value } })} />
                       <button className="btn">Thêm block</button>
                     </form>

@@ -4576,3 +4576,242 @@ p,
     font-size: 12px;
   }
 }
+
+.grammar-player {
+  gap: 14px;
+}
+
+.grammar-player .actions {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 620px) {
+  .grammar-player .actions {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .grammar-player .actions .btn,
+  .grammar-player .actions .badge {
+    justify-content: center;
+    width: 100%;
+  }
+}
+.test-list-button.danger {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(254, 242, 242, 0.92);
+}
+.fill-blank-question {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  line-height: 1.8;
+}
+
+.fill-blank-input {
+  width: min(220px, 100%);
+  min-width: 120px;
+  padding: 10px 12px;
+  display: inline-flex;
+}
+
+.fill-blank-input.correct {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.fill-blank-input.incorrect {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.fill-blank-result {
+  display: grid;
+  gap: 4px;
+}
+
+.fill-blank-result.correct {
+  border-color: rgba(16, 185, 129, 0.24);
+  background: var(--success-soft);
+}
+
+.fill-blank-result.incorrect {
+  border-color: rgba(239, 68, 68, 0.24);
+  background: var(--danger-soft);
+}
+
+@media (max-width: 640px) {
+  .fill-blank-question {
+    align-items: stretch;
+  }
+
+  .fill-blank-input {
+    flex: 1 1 160px;
+  }
+}
+.reorder-player {
+  display: grid;
+  gap: 14px;
+}
+
+.reorder-answer,
+.reorder-bank {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.reorder-answer {
+  min-height: 58px;
+  padding: 12px;
+  border: 1.5px dashed var(--line-active);
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.78);
+}
+
+.reorder-token {
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 750;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+}
+
+.reorder-token:hover:not(:disabled) {
+  border-color: var(--line-active);
+  transform: translateY(-1px);
+}
+
+.reorder-token.selected {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.reorder-token:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+@media (max-width: 640px) {
+  .reorder-token {
+    min-height: 38px;
+    padding: 8px 11px;
+  }
+}
+.matching-player {
+  display: grid;
+  gap: 14px;
+}
+
+.matching-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.matching-column {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.matching-card {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.matching-card:hover:not(:disabled),
+.matching-card.active {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.matching-card.correct {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.matching-card.incorrect {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.matching-card:disabled {
+  cursor: default;
+}
+
+.matching-card small,
+.matching-card span {
+  color: var(--muted);
+  font-weight: 650;
+}
+
+@media (max-width: 720px) {
+  .matching-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.error-correction-player {
+  display: grid;
+  gap: 12px;
+}
+
+.error-correction-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.78);
+  line-height: 1.8;
+}
+
+.error-token {
+  padding: 7px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.error-token.active {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.error-token:disabled {
+  cursor: default;
+}
+
+.error-highlight {
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 850;
+}
+.short-sentence-player {
+  display: grid;
+  gap: 10px;
+}

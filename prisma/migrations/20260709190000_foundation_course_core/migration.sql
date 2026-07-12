@@ -1,4 +1,4 @@
-﻿create table if not exists "FoundationCourse" (
+create table if not exists "FoundationCourse" (
   "id" text primary key,
   "teacherId" text not null references "User"("id"),
   "title" text not null,
