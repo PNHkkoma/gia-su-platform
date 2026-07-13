@@ -1,4 +1,4 @@
-﻿spring:
+spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/giasu_platform?options=-c%20TimeZone=Asia/Ho_Chi_Minh}
     username: ${SPRING_DATASOURCE_USERNAME:giasu_user}
@@ -23,4 +23,4 @@ server:
 
 app:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,https://gia-su-platform-two.vercel.app}
