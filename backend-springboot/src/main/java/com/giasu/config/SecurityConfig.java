@@ -21,7 +21,7 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000,https://gia-su-platform-two.vercel.app}")
+    @Value("${app.cors.allowed-origins:http://localhost:3000,https://goldenponyenglish.vercel.app}")
     private String allowedOrigins;
 
     @Bean
