@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
@@ -32,13 +32,15 @@ function createQuestion(index: number): QuestionDraft {
 }
 
 function fromDetail(test: TestDetail): EditState {
+  const questions: ServerQuestion[] = test.questions?.length ? test.questions : [{}];
+
   return {
     title: test.title,
     description: test.description || '',
     durationMinutes: test.durationMinutes ?? 40,
     maxAttempts: test.maxAttempts ?? 1,
     status: test.status.toLowerCase() === 'published' ? 'PUBLISHED' : 'DRAFT',
-    questions: (test.questions?.length ? test.questions : [createQuestion(1)]).map((question, index) => {
+    questions: questions.map((question, index) => {
       const type = normalizeType(question.type);
       const options = type === 'true-false' ? ['Đúng', 'Sai'] : type === 'short-answer' || type === 'essay' ? [] : question.options?.length ? question.options : ['A', 'B', 'C', 'D'];
       const correct = Array.isArray(question.correctAnswer) ? question.correctAnswer.map(String) : question.correctAnswer ? [String(question.correctAnswer)] : options[0] ? [options[0]] : [];
